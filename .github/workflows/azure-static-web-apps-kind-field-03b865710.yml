@@ -22,6 +22,15 @@ jobs:
         with:
           submodules: true
           lfs: false
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+      - name: Install frontend dependencies
+        run: npm install
+      - name: Build frontend
+        run: npm run build
+      - name: Install API dependencies
+        run: npm install --prefix api
       - name: Install OIDC Client from Core Package
         run: npm install @actions/core@1.6.0 @actions/http-client
       - name: Get Id Token
