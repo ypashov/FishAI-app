@@ -1,0 +1,16 @@
+{
+  "name": "fishai-functions",
+  "version": "0.1.0",
+  "description": "Azure Functions for the FishAI static web app",
+  "main": "index.js",
+  "scripts": {
+    "build": "echo \"Azure Functions are built by the platform\"",
+    "lint": "echo \"(add linting for functions if needed)\""
+  },
+  "dependencies": {
+    "@azure/storage-blob": "^12.19.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
