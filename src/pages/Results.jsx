@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 const STORAGE_KEY = 'fishai:lastPrediction'
+const RECENT_LIMIT = 5
 
 function readStoredPrediction() {
   if (typeof window === 'undefined') return null
@@ -36,11 +37,9 @@ export default function Results() {
       setLoadingRecent(true)
       setRecentError('')
       try {
-        const response = await fetch('/api/recent?limit=5')
+        const response = await fetch(`/api/recent?limit=${RECENT_LIMIT}`)
         const payload = await response.json().catch(() => ({}))
-        if (!response.ok) {
-          throw new Error(payload.error || `Recent request failed (${response.status})`)
-        }
+        if (!response.ok) throw new Error(payload.error || `Recent request failed (${response.status})`)
         setRecent(payload.items || [])
         if (!prediction && payload.items && payload.items.length) {
           setPrediction(payload.items[0])
@@ -169,7 +168,7 @@ export default function Results() {
           {loadingRecent ? (
             <span className="text-xs text-slate-500">Loading...</span>
           ) : (
-            <span className="text-xs text-slate-500">Last {Math.min(recent.length, 5)} uploads</span>
+            <span className="text-xs text-slate-500">Last {Math.min(recent.length, RECENT_LIMIT)} uploads</span>
           )}
         </div>
         {recentError && <p className="mb-3 text-xs text-red-400">{recentError}</p>}
@@ -201,7 +200,7 @@ export default function Results() {
                     />
                   ) : (
                     <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-slate-900 text-xs text-slate-500">
-                      --
+                      —
                     </div>
                   )}
                   <div className="min-w-0">
@@ -221,7 +220,7 @@ export default function Results() {
             })}
           </div>
         ) : (
-          <p className="text-sm text-slate-500">Upload a few photos to build shared history.</p>
+          <p className="text-sm text-slate-500">No public analyses yet. Try uploading your first fish photo.</p>
         )}
       </section>
     </div>
