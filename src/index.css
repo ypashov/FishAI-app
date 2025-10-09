@@ -2,4 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-body { @apply text-slate-800; }
+body {
+  @apply bg-slate-950 text-slate-100 antialiased;
+}

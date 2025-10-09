@@ -49,13 +49,13 @@ export default function Results() {
 
   if (!prediction) {
     return (
-      <div className="rounded-2xl bg-white/80 p-6 text-center shadow-sm">
-        <h2 className="text-xl font-semibold text-slate-900">No analysis yet</h2>
-        <p className="mt-2 text-sm text-slate-600">Upload a fish photo to see Azure Vision results.</p>
+      <div className="rounded-2xl bg-slate-900/70 p-6 text-center shadow-lg shadow-slate-950/40">
+        <h2 className="text-xl font-semibold text-slate-50">No analysis yet</h2>
+        <p className="mt-2 text-sm text-slate-400">Upload a fish photo to see Azure Vision results.</p>
         <button
           type="button"
           onClick={() => navigate('/upload')}
-          className="mt-4 rounded-full bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="mt-4 rounded-full bg-blue-500 px-5 py-2 text-sm font-medium text-slate-950 hover:bg-blue-400"
         >
           Go to upload
         </button>
@@ -67,41 +67,41 @@ export default function Results() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 rounded-2xl bg-white/80 p-6 shadow-sm md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-3 rounded-2xl bg-slate-900/70 p-6 shadow-lg shadow-slate-950/40 md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-slate-900">Latest analysis</h2>
-          <p className="text-sm text-slate-500">Generated with Azure AI Vision</p>
+          <h2 className="text-xl font-semibold text-slate-50">Latest analysis</h2>
+          <p className="text-sm text-slate-400">Powered by Azure AI Vision</p>
         </div>
         <button
           type="button"
           onClick={() => navigate('/upload')}
-          className="rounded-full border border-slate-200 px-5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          className="rounded-full border border-slate-700 px-5 py-2 text-sm font-medium text-slate-200 hover:bg-slate-900"
         >
           Analyze another photo
         </button>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="space-y-4 rounded-2xl bg-white/80 p-5 shadow-sm">
+        <div className="space-y-4 rounded-2xl bg-slate-900/70 p-5 shadow-lg shadow-slate-950/40">
           {imageSource ? (
             <img
               src={imageSource}
               alt={fileName || 'Uploaded fish'}
               onError={handleImageError}
-              className="w-full max-h-[420px] rounded-lg object-contain bg-slate-100"
+              className="w-full max-h-[420px] rounded-lg border border-slate-800 bg-slate-950/80 object-contain p-2"
             />
           ) : (
-            <div className="flex h-48 items-center justify-center rounded-lg border border-dashed border-slate-300 text-sm text-slate-500">
+            <div className="flex h-48 items-center justify-center rounded-lg border border-dashed border-slate-700 text-sm text-slate-500">
               No preview available
             </div>
           )}
-          <div className="text-xs text-slate-500">
-            {fileName && <div className="font-medium text-slate-600">{fileName}</div>}
+          <div className="text-xs text-slate-400">
+            {fileName && <div className="font-medium text-slate-300">{fileName}</div>}
             {analyzedAt && <div>Analyzed {new Date(analyzedAt).toLocaleString()}</div>}
             {sasUrl && (
               <div className="truncate">
-                <span className="font-medium">SAS link:</span>{' '}
-                <a href={sasUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                <span className="font-medium text-slate-300">SAS link:</span>{' '}
+                <a href={sasUrl} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
                   open
                 </a>
               </div>
@@ -109,19 +109,19 @@ export default function Results() {
           </div>
         </div>
 
-        <div className="space-y-4 rounded-2xl bg-white/80 p-5 shadow-sm">
+        <div className="space-y-4 rounded-2xl bg-slate-900/70 p-5 shadow-lg shadow-slate-950/40">
           <div className="space-y-2">
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Summary</span>
-            <p className="text-sm text-slate-700">
+            <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Summary</span>
+            <p className="text-sm text-slate-300">
               {description || 'Vision did not return a caption for this image.'}
             </p>
           </div>
           <div className="space-y-2">
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Tags</span>
+            <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Tags</span>
             {tags.length ? (
               <div className="flex flex-wrap gap-2">
                 {tags.slice(0, 8).map((tag) => (
-                  <span key={tag.name} className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
+                  <span key={tag.name} className="rounded-full bg-blue-500/20 px-3 py-1 text-xs font-medium text-blue-300">
                     {tag.name} · {formatConfidence(tag.confidence)}
                   </span>
                 ))}
@@ -131,9 +131,9 @@ export default function Results() {
             )}
           </div>
           <div className="space-y-2">
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Objects</span>
+            <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Objects</span>
             {objects.length ? (
-              <div className="space-y-1 text-sm text-slate-700">
+              <div className="space-y-1 text-sm text-slate-300">
                 {objects.slice(0, 6).map((obj, index) => (
                   <div key={`${obj.name}-${index}`}>
                     {obj.name} · {formatConfidence(obj.confidence)}

@@ -8,23 +8,23 @@ const quickFacts = [
 
 export default function Home() {
   return (
-    <div className="space-y-8 rounded-2xl bg-white/80 p-8 shadow-sm">
+    <div className="space-y-8 rounded-2xl bg-slate-900/70 p-8 shadow-lg shadow-slate-950/40">
       <section className="space-y-4">
-        <p className="text-sm uppercase tracking-wide text-blue-600">Fish AI</p>
-        <h1 className="text-3xl font-semibold text-slate-900">Upload a fish photo. Get instant insights.</h1>
-        <p className="text-sm text-slate-600">
-          Fish AI stores your photo securely, runs Azure Vision analysis, and surfaces the essentials in seconds.
+        <p className="text-xs uppercase tracking-wide text-blue-400/80">Fish AI</p>
+        <h1 className="text-3xl font-semibold text-slate-50">Upload a fish photo. Get instant insights.</h1>
+        <p className="text-sm text-slate-400">
+          Secure upload, Azure Vision analysis, and shareable insights in seconds.
         </p>
         <div className="flex flex-wrap gap-3">
           <Link
             to="/upload"
-            className="rounded-full bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            className="rounded-full bg-blue-500 px-5 py-2 text-sm font-medium text-slate-950 transition hover:bg-blue-400"
           >
             Start with an upload
           </Link>
           <Link
             to="/results"
-            className="rounded-full border border-slate-200 px-5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            className="rounded-full border border-slate-700 px-5 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-800/80"
           >
             See last result
           </Link>
@@ -33,9 +33,14 @@ export default function Home() {
 
       <section className="grid gap-4 md:grid-cols-3">
         {quickFacts.map((fact) => (
-          <div key={fact.title} className="rounded-xl border border-slate-100 bg-slate-50/60 p-4">
-            <span className="text-sm font-semibold uppercase tracking-wide text-slate-500">{fact.title}</span>
-            <p className="mt-2 text-sm text-slate-600">{fact.description}</p>
+          <div
+            key={fact.title}
+            className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 text-sm text-slate-300"
+          >
+            <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+              {fact.title}
+            </span>
+            <p className="mt-2 text-slate-400">{fact.description}</p>
           </div>
         ))}
       </section>

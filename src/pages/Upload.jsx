@@ -36,7 +36,7 @@ export default function Upload() {
     } catch (err) {
       console.error(err)
       setPreview(null)
-      setError('Could not preview this file. Try a different image.')
+      setError('Could not preview this file.')
     }
   }
 
@@ -91,10 +91,10 @@ export default function Upload() {
   }
 
   return (
-    <div className="rounded-2xl bg-white/80 p-6 shadow-sm">
+    <div className="rounded-2xl bg-slate-900/70 p-6 shadow-lg shadow-slate-950/40">
       <div className="space-y-1">
-        <h2 className="text-xl font-semibold text-slate-900">Upload & analyze</h2>
-        <p className="text-sm text-slate-500">Select one clear fish photo to run Azure Vision.</p>
+        <h2 className="text-xl font-semibold text-slate-50">Upload & analyze</h2>
+        <p className="text-sm text-slate-400">Select a single image to run through Azure Vision.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="mt-5 space-y-5">
@@ -103,13 +103,13 @@ export default function Upload() {
             type="file"
             accept="image/*"
             onChange={handleFileChange}
-            className="block w-full cursor-pointer rounded-md border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm"
+            className="block w-full cursor-pointer rounded-lg border border-dashed border-slate-700 bg-slate-900 px-4 py-3 text-sm text-slate-200 file:mr-4 file:rounded-md file:border-0 file:bg-blue-500 file:px-3 file:py-1 file:text-sm file:font-medium file:text-slate-950 hover:border-slate-500"
           />
           {preview && (
             <img
               src={preview}
               alt="Selected preview"
-              className="max-h-64 w-full rounded-lg border border-slate-200 object-contain bg-white p-2"
+              className="max-h-64 w-full rounded-lg border border-slate-800 bg-slate-950/80 object-contain p-2"
             />
           )}
         </div>
@@ -118,22 +118,22 @@ export default function Upload() {
           <button
             type="submit"
             disabled={!file || busy}
-            className="rounded-full bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:bg-slate-400 disabled:text-slate-100"
+            className="rounded-full bg-blue-500 px-5 py-2 text-sm font-medium text-slate-950 transition hover:bg-blue-400 disabled:bg-slate-700 disabled:text-slate-400"
           >
             {busy ? 'Analyzing…' : 'Upload image'}
           </button>
           <button
             type="button"
             onClick={handleClear}
-            className="rounded-full border border-slate-200 px-5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            className="rounded-full border border-slate-700 px-5 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-900"
           >
             Clear
           </button>
         </div>
       </form>
 
-      {status && <p className="mt-4 text-sm text-slate-600">{status}</p>}
-      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+      {status && <p className="mt-4 text-sm text-slate-400">{status}</p>}
+      {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
     </div>
   )
 }
