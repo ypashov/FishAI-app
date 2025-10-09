@@ -14,7 +14,7 @@ export default function App() {
             </span>
             <div>
               <div className="text-lg font-semibold leading-tight">Fish AI</div>
-              <div className="text-xs text-slate-400">Azure-assisted recognition</div>
+              <div className="text-xs text-slate-400">Instant species recognition</div>
             </div>
           </NavLink>
           <nav className="flex flex-wrap gap-2">

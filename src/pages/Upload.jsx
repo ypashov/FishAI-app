@@ -95,7 +95,7 @@ export default function Upload() {
     <div className="rounded-2xl bg-slate-900/70 p-6 shadow-lg shadow-slate-950/40">
       <div className="space-y-1">
         <h2 className="text-xl font-semibold text-slate-50">Upload & analyze</h2>
-        <p className="text-sm text-slate-400">Select a single image to run through Azure Vision.</p>
+        <p className="text-sm text-slate-400">Choose a clear fish photo and let our model handle the rest.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="mt-5 space-y-5">

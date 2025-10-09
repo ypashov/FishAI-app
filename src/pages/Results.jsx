@@ -85,7 +85,9 @@ export default function Results() {
     return (
       <div className="rounded-2xl bg-slate-900/70 p-6 text-center shadow-lg shadow-slate-950/40">
         <h2 className="text-xl font-semibold text-slate-50">No analysis yet</h2>
-        <p className="mt-2 text-sm text-slate-400">Upload a fish photo or revisit once analyses are available.</p>
+        <p className="mt-2 text-sm text-slate-400">
+          Upload a fish photo to see species suggestions and key identifiers.
+        </p>
         <button
           type="button"
           onClick={() => navigate('/upload')}
@@ -97,14 +99,14 @@ export default function Results() {
     )
   }
 
-  const { objects = [], analyzedAt, fileName, sasUrl } = prediction
+  const { objects = [], analyzedAt, fileName, sasUrl, id: currentId } = prediction
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 rounded-2xl bg-slate-900/70 p-6 shadow-lg shadow-slate-950/40 md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-slate-50">Latest analysis</h2>
-          <p className="text-sm text-slate-400">Azure Vision object highlights</p>
+          <h2 className="text-xl font-semibold text-slate-50">Latest fish analysis</h2>
+          <p className="text-sm text-slate-400">Primary species cues detected in your photo.</p>
         </div>
         <button
           type="button"
@@ -134,7 +136,7 @@ export default function Results() {
             {analyzedAt && <div>Analyzed {new Date(analyzedAt).toLocaleString()}</div>}
             {sasUrl && (
               <div className="truncate">
-                <span className="font-medium text-slate-300">SAS link:</span>{' '}
+                <span className="font-medium text-slate-300">Share link:</span>{' '}
                 <a href={sasUrl} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
                   open
                 </a>
@@ -145,7 +147,7 @@ export default function Results() {
 
         <div className="space-y-4 rounded-2xl bg-slate-900/70 p-5 shadow-lg shadow-slate-950/40">
           <div className="space-y-2">
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Detected objects</span>
+            <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Detected cues</span>
             {objects.length ? (
               <div className="space-y-1 text-sm text-slate-300">
                 {objects.slice(0, 8).map((obj, index) => (
@@ -155,7 +157,7 @@ export default function Results() {
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-slate-500">No objects detected.</p>
+              <p className="text-xs text-slate-500">No distinct objects detected.</p>
             )}
           </div>
         </div>
@@ -183,7 +185,7 @@ export default function Results() {
                   type="button"
                   onClick={() => handleSelectRecent(item)}
                   className={`flex items-center gap-3 rounded-lg border p-3 text-left transition ${
-                    prediction?.id === item.id
+                    currentId === item.id
                       ? 'border-blue-500 bg-slate-900'
                       : 'border-slate-800 bg-slate-950/70 hover:border-slate-700'
                   }`}
@@ -199,12 +201,12 @@ export default function Results() {
                     />
                   ) : (
                     <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-slate-900 text-xs text-slate-500">
-                      —
+                      --
                     </div>
                   )}
                   <div className="min-w-0">
                     <div className="truncate text-sm font-medium text-slate-200">
-                      {item.fileName || 'Unnamed upload'}
+                      {item.fileName || 'Untitled upload'}
                     </div>
                     {primaryObject ? (
                       <div className="text-xs text-slate-500">
