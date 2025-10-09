@@ -18,7 +18,7 @@ export default function Upload() {
   const [preview, setPreview] = useState(null)
   const [status, setStatus] = useState('')
   const [error, setError] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [busy, setBusy] = useState(false)
 
   const handleFileChange = async (event) => {
     const nextFile = event.target.files?.[0] || null
@@ -32,34 +32,31 @@ export default function Upload() {
     }
 
     try {
-      const dataUrl = await readFileAsDataUrl(nextFile)
-      setPreview(dataUrl)
+      setPreview(await readFileAsDataUrl(nextFile))
     } catch (err) {
-      console.error('Failed to read file preview', err)
+      console.error(err)
       setPreview(null)
-      setError('Unable to read the selected file. Please choose a different image.')
+      setError('Could not preview this file. Try a different image.')
     }
   }
 
-  const clearSelection = () => {
+  const handleClear = () => {
     setFile(null)
     setPreview(null)
     setStatus('')
     setError('')
   }
 
-  const handleUpload = async (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
-    if (!file) return
+    if (!file || busy) return
 
-    setIsSubmitting(true)
+    setBusy(true)
     setError('')
+    setStatus('Uploading…')
 
     try {
-      setStatus('Uploading image to Azure Blob Storage...')
-
       const dataUrl = preview || (await readFileAsDataUrl(file))
-
       const response = await fetch('/api/upload-and-analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -71,85 +68,72 @@ export default function Upload() {
       })
 
       const payload = await response.json().catch(() => ({}))
-
       if (!response.ok) {
-        const message = payload.error || `Upload failed with status ${response.status}.`
-        throw new Error(message)
+        throw new Error(payload.error || `Upload failed (${response.status})`)
       }
-
-      setStatus('Analysis complete. Redirecting to results...')
 
       const prediction = {
         ...payload,
         fileName: file.name,
-        contentType: file.type || 'application/octet-stream',
         previewDataUrl: dataUrl
       }
 
-      if (typeof window !== 'undefined') {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(prediction))
-      }
-
+      window.localStorage?.setItem(STORAGE_KEY, JSON.stringify(prediction))
+      setStatus('Done! Redirecting…')
       navigate('/results', { state: { prediction } })
     } catch (err) {
-      console.error('Upload failed', err)
-      setError(err.message || 'Upload failed. Check console for details.')
+      console.error(err)
       setStatus('')
+      setError(err.message || 'Upload failed.')
     } finally {
-      setIsSubmitting(false)
+      setBusy(false)
     }
   }
 
   return (
-    <div className="space-y-5">
-      <div>
-        <h2 className="text-2xl font-semibold">Upload an Image</h2>
-        <p className="text-sm text-slate-600">
-          Your image will be stored in Azure Blob Storage, analyzed with Azure AI Vision, and summarized for you moments later.
-        </p>
+    <div className="rounded-2xl bg-white/80 p-6 shadow-sm">
+      <div className="space-y-1">
+        <h2 className="text-xl font-semibold text-slate-900">Upload & analyze</h2>
+        <p className="text-sm text-slate-500">Select one clear fish photo to run Azure Vision.</p>
       </div>
 
-      <form onSubmit={handleUpload} className="space-y-4">
+      <form onSubmit={handleSubmit} className="mt-5 space-y-5">
         <div className="space-y-3">
           <input
             type="file"
             accept="image/*"
             onChange={handleFileChange}
-            className="block text-sm"
+            className="block w-full cursor-pointer rounded-md border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm"
           />
           {preview && (
             <img
               src={preview}
-              alt="Selected upload preview"
-              className="max-h-64 rounded border bg-white object-contain p-2 shadow-sm"
+              alt="Selected preview"
+              className="max-h-64 w-full rounded-lg border border-slate-200 object-contain bg-white p-2"
             />
           )}
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-3">
           <button
             type="submit"
-            disabled={!file || isSubmitting}
-            className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:bg-slate-400 disabled:cursor-not-allowed"
+            disabled={!file || busy}
+            className="rounded-full bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:bg-slate-400 disabled:text-slate-100"
           >
-            {isSubmitting ? 'Analyzing...' : 'Upload & Analyze'}
+            {busy ? 'Analyzing…' : 'Upload image'}
           </button>
           <button
             type="button"
-            onClick={clearSelection}
-            className="px-4 py-2 rounded border border-slate-300 text-slate-700 hover:bg-slate-50"
+            onClick={handleClear}
+            className="rounded-full border border-slate-200 px-5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
           >
             Clear
           </button>
         </div>
       </form>
 
-      {status && <p className="text-sm text-slate-600">{status}</p>}
-      {error && <p className="text-sm text-red-600">{error}</p>}
-
-      <div className="text-xs text-slate-500">
-        Analysis typically completes in a few seconds. SAS links we return stay active for one hour so you can share the result if needed.
-      </div>
+      {status && <p className="mt-4 text-sm text-slate-600">{status}</p>}
+      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
     </div>
   )
 }
