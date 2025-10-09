@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 const STORAGE_KEY = 'fishai:lastPrediction'
+const HISTORY_KEY = 'fishai:history'
 
 function readStoredPrediction() {
   if (typeof window === 'undefined') return null
@@ -19,14 +20,27 @@ function formatConfidence(value) {
   return `${Math.round(value * 100)}%`
 }
 
+function readHistory() {
+  if (typeof window === 'undefined') return []
+  try {
+    const raw = window.localStorage.getItem(HISTORY_KEY)
+    return raw ? JSON.parse(raw) : []
+  } catch (err) {
+    console.error('Unable to parse history', err)
+    return []
+  }
+}
+
 export default function Results() {
   const location = useLocation()
   const navigate = useNavigate()
 
   const initial = useMemo(() => location.state?.prediction || readStoredPrediction(), [location.state])
+  const initialHistory = useMemo(() => readHistory(), [])
 
   const [prediction, setPrediction] = useState(initial)
   const [imageSource, setImageSource] = useState(initial?.sasUrl || initial?.previewDataUrl || '')
+  const [history, setHistory] = useState(initialHistory)
 
   useEffect(() => {
     if (!location.state?.prediction) return
@@ -34,6 +48,7 @@ export default function Results() {
     setPrediction(next)
     setImageSource(next.sasUrl || next.previewDataUrl || '')
     window.localStorage?.setItem(STORAGE_KEY, JSON.stringify(next))
+    setHistory(readHistory())
   }, [location.state])
 
   useEffect(() => {
@@ -63,7 +78,8 @@ export default function Results() {
     )
   }
 
-  const { description, tags = [], objects = [], analyzedAt, fileName, sasUrl } = prediction
+  const { objects = [], analyzedAt, fileName, sasUrl, id: currentId } = prediction
+  const recentHistory = history.filter((item) => item.id !== currentId).slice(0, 5)
 
   return (
     <div className="space-y-6">
@@ -111,30 +127,10 @@ export default function Results() {
 
         <div className="space-y-4 rounded-2xl bg-slate-900/70 p-5 shadow-lg shadow-slate-950/40">
           <div className="space-y-2">
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Summary</span>
-            <p className="text-sm text-slate-300">
-              {description || 'Vision did not return a caption for this image.'}
-            </p>
-          </div>
-          <div className="space-y-2">
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Tags</span>
-            {tags.length ? (
-              <div className="flex flex-wrap gap-2">
-                {tags.slice(0, 8).map((tag) => (
-                  <span key={tag.name} className="rounded-full bg-blue-500/20 px-3 py-1 text-xs font-medium text-blue-300">
-                    {tag.name} · {formatConfidence(tag.confidence)}
-                  </span>
-                ))}
-              </div>
-            ) : (
-              <p className="text-xs text-slate-500">No tags detected.</p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Objects</span>
+            <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Detected objects</span>
             {objects.length ? (
               <div className="space-y-1 text-sm text-slate-300">
-                {objects.slice(0, 6).map((obj, index) => (
+                {objects.slice(0, 8).map((obj, index) => (
                   <div key={`${obj.name}-${index}`}>
                     {obj.name} · {formatConfidence(obj.confidence)}
                   </div>
@@ -146,6 +142,56 @@ export default function Results() {
           </div>
         </div>
       </div>
+
+      <section className="rounded-2xl bg-slate-900/70 p-5 shadow-lg shadow-slate-950/40">
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-400">Recent analyses</h3>
+          <span className="text-xs text-slate-500">Latest 5 uploads</span>
+        </div>
+        {recentHistory.length ? (
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            {recentHistory.map((item) => {
+              const thumb = item.sasUrl || item.previewDataUrl
+              const primaryObject = item.objects?.[0]
+              return (
+                <div
+                  key={item.id || item.blobName || item.fileName}
+                  className="flex items-center gap-3 rounded-lg border border-slate-800 bg-slate-950/70 p-3"
+                >
+                  {thumb ? (
+                    <img
+                      src={thumb}
+                      alt={item.fileName || 'Analysis thumbnail'}
+                      className="h-12 w-12 rounded-lg object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none'
+                      }}
+                    />
+                  ) : (
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-slate-900 text-xs text-slate-500">
+                      —
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-medium text-slate-200">
+                      {item.fileName || 'Unnamed upload'}
+                    </div>
+                    {primaryObject ? (
+                      <div className="text-xs text-slate-500">
+                        {primaryObject.name} · {formatConfidence(primaryObject.confidence)}
+                      </div>
+                    ) : (
+                      <div className="text-xs text-slate-500">No objects detected</div>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        ) : (
+          <p className="text-sm text-slate-500">Upload a few photos to build your history.</p>
+        )}
+      </section>
     </div>
   )
 }

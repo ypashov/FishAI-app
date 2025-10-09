@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const STORAGE_KEY = 'fishai:lastPrediction'
+const HISTORY_KEY = 'fishai:history'
 
 function readFileAsDataUrl(file) {
   return new Promise((resolve, reject) => {
@@ -72,13 +73,25 @@ export default function Upload() {
         throw new Error(payload.error || `Upload failed (${response.status})`)
       }
 
+      const predictionId = payload.blobName || `${Date.now()}-${file.name}`
+      const analyzedAt = payload.analyzedAt || new Date().toISOString()
       const prediction = {
+        id: predictionId,
         ...payload,
         fileName: file.name,
+        analyzedAt,
         previewDataUrl: dataUrl
       }
 
       window.localStorage?.setItem(STORAGE_KEY, JSON.stringify(prediction))
+      try {
+        const raw = window.localStorage?.getItem(HISTORY_KEY)
+        const history = raw ? JSON.parse(raw) : []
+        const next = [prediction, ...history.filter((item) => item.id !== prediction.id)]
+        window.localStorage?.setItem(HISTORY_KEY, JSON.stringify(next.slice(0, 10)))
+      } catch (historyErr) {
+        console.warn('Unable to persist history', historyErr)
+      }
       setStatus('Done! Redirecting…')
       navigate('/results', { state: { prediction } })
     } catch (err) {
