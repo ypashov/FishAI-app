@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const STORAGE_KEY = 'fishai:lastPrediction'
-const HISTORY_KEY = 'fishai:history'
 
 function readFileAsDataUrl(file) {
   return new Promise((resolve, reject) => {
@@ -54,7 +53,7 @@ export default function Upload() {
 
     setBusy(true)
     setError('')
-    setStatus('Uploading…')
+    setStatus('Uploading...')
 
     try {
       const dataUrl = preview || (await readFileAsDataUrl(file))
@@ -73,26 +72,15 @@ export default function Upload() {
         throw new Error(payload.error || `Upload failed (${response.status})`)
       }
 
-      const predictionId = payload.blobName || `${Date.now()}-${file.name}`
-      const analyzedAt = payload.analyzedAt || new Date().toISOString()
       const prediction = {
-        id: predictionId,
+        id: payload.id || payload.blobName || `${Date.now()}-${file.name}`,
         ...payload,
         fileName: file.name,
-        analyzedAt,
         previewDataUrl: dataUrl
       }
 
       window.localStorage?.setItem(STORAGE_KEY, JSON.stringify(prediction))
-      try {
-        const raw = window.localStorage?.getItem(HISTORY_KEY)
-        const history = raw ? JSON.parse(raw) : []
-        const next = [prediction, ...history.filter((item) => item.id !== prediction.id)]
-        window.localStorage?.setItem(HISTORY_KEY, JSON.stringify(next.slice(0, 10)))
-      } catch (historyErr) {
-        console.warn('Unable to persist history', historyErr)
-      }
-      setStatus('Done! Redirecting…')
+      setStatus('Done! Redirecting...')
       navigate('/results', { state: { prediction } })
     } catch (err) {
       console.error(err)
@@ -133,7 +121,7 @@ export default function Upload() {
             disabled={!file || busy}
             className="rounded-full bg-blue-500 px-5 py-2 text-sm font-medium text-slate-950 transition hover:bg-blue-400 disabled:bg-slate-700 disabled:text-slate-400"
           >
-            {busy ? 'Analyzing…' : 'Upload image'}
+            {busy ? 'Analyzing...' : 'Upload image'}
           </button>
           <button
             type="button"

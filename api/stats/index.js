@@ -8,29 +8,24 @@ module.exports = async function (context, req) {
   try {
     const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING
     const containerName = process.env.AZURE_STORAGE_CONTAINER || 'uploads'
+    const metadataContainerName = process.env.AZURE_METADATA_CONTAINER || 'analysis-metadata'
 
     if (!connectionString) {
       throw new Error('Missing AZURE_STORAGE_CONNECTION_STRING configuration value.')
     }
 
     const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString)
-    const containerClient = blobServiceClient.getContainerClient(containerName)
-
-    let exists = true
-    try {
-      await containerClient.getProperties()
-    } catch (err) {
-      if (err.statusCode === 404) {
-        exists = false
-      } else {
-        throw err
-      }
-    }
+    const containerClient = blobServiceClient.getContainerClient(metadataContainerName)
 
     let total = 0
-    if (exists) {
+    try {
+      await containerClient.getProperties()
       for await (const _ of containerClient.listBlobsFlat({ includeMetadata: false })) {
         total += 1
+      }
+    } catch (err) {
+      if (err.statusCode !== 404) {
+        throw err
       }
     }
 
@@ -39,7 +34,7 @@ module.exports = async function (context, req) {
       headers: { 'Content-Type': 'application/json' },
       body: {
         totalRecognitions: total,
-        container: containerName,
+        container: metadataContainerName,
         computedAt: new Date().toISOString()
       }
     }

@@ -9,6 +9,7 @@ module.exports = async function (context, req) {
   try {
     const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING
     const containerName = process.env.AZURE_STORAGE_CONTAINER || 'uploads'
+    const metadataContainerName = process.env.AZURE_METADATA_CONTAINER || 'analysis-metadata'
     const visionEndpoint = (process.env.AZURE_VISION_ENDPOINT || '').trim()
     const visionKey = (process.env.AZURE_VISION_KEY || '').trim()
 
@@ -48,7 +49,8 @@ module.exports = async function (context, req) {
 
     const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString)
     const containerClient = blobServiceClient.getContainerClient(containerName)
-    await containerClient.createIfNotExists()
+    const metadataContainerClient = blobServiceClient.getContainerClient(metadataContainerName)
+    await Promise.all([containerClient.createIfNotExists(), metadataContainerClient.createIfNotExists()])
 
     const blockBlobClient = containerClient.getBlockBlobClient(blobName)
     await blockBlobClient.upload(buffer, buffer.length, {
@@ -110,10 +112,33 @@ module.exports = async function (context, req) {
       confidence: tag.confidence
     }))
 
+    const analyzedAt = new Date().toISOString()
+
+    const metadataRecord = {
+      id: crypto.randomUUID(),
+      blobName,
+      blobUrl: blockBlobClient.url,
+      container: containerName,
+      contentType,
+      fileName,
+      description: caption?.text || null,
+      captionConfidence: caption?.confidence || null,
+      tags,
+      objects,
+      analyzedAt
+    }
+
+    const metadataBlob = metadataContainerClient.getBlockBlobClient(`${blobName}.json`)
+    const metadataJson = JSON.stringify(metadataRecord)
+    await metadataBlob.upload(Buffer.from(metadataJson), Buffer.byteLength(metadataJson), {
+      blobHTTPHeaders: { blobContentType: 'application/json' }
+    })
+
     context.res = {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
       body: {
+        id: metadataRecord.id,
         blobName,
         blobUrl: blockBlobClient.url,
         sasUrl,
@@ -123,7 +148,7 @@ module.exports = async function (context, req) {
         tags,
         objects,
         rawAnalysis: analysis,
-        analyzedAt: new Date().toISOString()
+        analyzedAt
       }
     }
   } catch (error) {

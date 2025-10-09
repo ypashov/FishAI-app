@@ -42,7 +42,7 @@ export default function Home() {
   }, [])
 
   const displayCount =
-    totalRecognitions !== null ? totalRecognitions.toLocaleString() : loading ? '…' : '—'
+    totalRecognitions !== null ? totalRecognitions.toLocaleString() : loading ? '...' : 'N/A'
 
   return (
     <div className="space-y-8 rounded-2xl bg-slate-900/70 p-8 shadow-lg shadow-slate-950/40">
@@ -75,7 +75,7 @@ export default function Home() {
           </span>
           <div className="mt-3 text-3xl font-semibold text-slate-50">{displayCount}</div>
           <p className="mt-2 text-xs text-slate-500">
-            {error ? error : 'Count pulled from Azure storage uploads.'}
+            {error ? error : 'Count sourced from shared metadata.'}
           </p>
         </div>
         {baseFacts.map((fact) => (
