@@ -1,12 +1,49 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
-const quickFacts = [
-  { title: 'Secure upload', description: 'Images land in your private Azure Blob container.' },
+const baseFacts = [
+  { title: 'Secure upload', description: 'Images stay in your Azure Blob container.' },
   { title: 'AI summary', description: 'Azure Vision highlights likely species and objects.' },
-  { title: 'Shareable link', description: 'Get a one-hour SAS link for teammates or clients.' }
+  { title: 'Shareable link', description: 'Each upload returns a one-hour SAS link.' }
 ]
 
 export default function Home() {
+  const [totalRecognitions, setTotalRecognitions] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadStats() {
+      try {
+        const response = await fetch('/api/stats')
+        const payload = await response.json().catch(() => ({}))
+        if (!response.ok) {
+          throw new Error(payload.error || `Stats request failed (${response.status})`)
+        }
+        if (isMounted) {
+          setTotalRecognitions(payload.totalRecognitions ?? 0)
+        }
+      } catch (err) {
+        console.error('Failed to load stats', err)
+        if (isMounted) {
+          setError('Stats unavailable')
+        }
+      } finally {
+        if (isMounted) setLoading(false)
+      }
+    }
+
+    loadStats()
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  const displayCount =
+    totalRecognitions !== null ? totalRecognitions.toLocaleString() : loading ? '…' : '—'
+
   return (
     <div className="space-y-8 rounded-2xl bg-slate-900/70 p-8 shadow-lg shadow-slate-950/40">
       <section className="space-y-4">
@@ -32,10 +69,19 @@ export default function Home() {
       </section>
 
       <section className="grid gap-4 md:grid-cols-3">
-        {quickFacts.map((fact) => (
+        <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-4 text-slate-300">
+          <span className="text-xs font-semibold uppercase tracking-wide text-blue-300">
+            Total recognitions
+          </span>
+          <div className="mt-3 text-3xl font-semibold text-slate-50">{displayCount}</div>
+          <p className="mt-2 text-xs text-slate-500">
+            {error ? error : 'Count pulled from Azure storage uploads.'}
+          </p>
+        </div>
+        {baseFacts.map((fact) => (
           <div
             key={fact.title}
-            className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 text-sm text-slate-300"
+            className="rounded-xl border border-slate-800 bg-slate-950/70 p-4 text-sm text-slate-300"
           >
             <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
               {fact.title}

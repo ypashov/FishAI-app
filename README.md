@@ -4,15 +4,16 @@ An Azure Static Web Apps site that lets users upload a fish photo, stores it in 
 
 ## Features
 - React + Vite SPA with Tailwind and React Router.
-- Azure Function (`/api/upload-and-analyze`) handles blob uploads and Vision analysis.
+- Azure Functions (`/api/upload-and-analyze`, `/api/stats`) handle uploads, Vision analysis, and aggregate stats.
 - One-click upload experience that redirects users to a rich analysis view.
 - Time-limited SAS link returned so the analyzed photo can be revisited for ~1 hour.
 - GitHub Actions workflow ready for SWA deployment (app + API).
 
 ## Architecture Overview
 1. The React app collects the image, previews it locally, and POSTs a base64 payload to `/api/upload-and-analyze`.
-2. The Azure Function writes the image to Blob Storage, generates a read-only SAS URL, and calls Azure AI Vision for `Description`, `Tags`, and `Objects`.
-3. The function response (image SAS, captions, tags, objects, raw payload) is cached locally in the browser and rendered on the `/results` route.
+2. The upload Function writes the image to Blob Storage, generates a read-only SAS URL, and calls Azure AI Vision for `Description`, `Tags`, and `Objects`.
+3. A lightweight stats Function (`/api/stats`) counts blobs in the configured container to power the total recognitions counter on the home page.
+4. The function responses (image SAS, captions, tags, objects, raw payload) are cached locally in the browser and rendered on the `/results` route.
 
 ## Local Development
 ```bash
@@ -40,7 +41,7 @@ Provision the following resources (or reuse existing ones) and store their secre
 | Setting | Description |
 | --- | --- |
 | `AZURE_STORAGE_CONNECTION_STRING` | Connection string for the storage account that holds your images. |
-| `AZURE_STORAGE_CONTAINER` | (Optional) Name of the blob container. Defaults to `uploads` if omitted. |
+| `AZURE_STORAGE_CONTAINER` | (Optional) Name of the blob container. Defaults to `uploads` if omitted. Used by both upload and stats functions. |
 | `AZURE_VISION_ENDPOINT` | Endpoint of your Azure AI Vision resource, e.g. `https://<resource>.cognitiveservices.azure.com`. |
 | `AZURE_VISION_KEY` | Primary/secondary key for the Vision resource. |
 
