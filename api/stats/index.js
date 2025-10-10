@@ -26,7 +26,7 @@ module.exports = async function (context, req) {
     try {
       await containerClient.getProperties()
       for await (const blob of containerClient.listBlobsFlat({ includeMetadata: false })) {
-        void blob
+        if (!blob) continue
         total += 1
       }
     } catch (err) {
@@ -60,3 +60,4 @@ module.exports = async function (context, req) {
     }
   }
 }
+
