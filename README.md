@@ -56,3 +56,4 @@ All settings must be present before running the Functions in Azure; otherwise re
 - `src/pages/Results.jsx`: fetches `/api/recent`, shows the active analysis (objects + preview), and lists the most recent analyses with thumbnails and detected objects.
 
 `staticwebapp.config.json` allows access to `/api/*` and enables client-side routing. 
+
