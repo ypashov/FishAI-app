@@ -115,7 +115,7 @@ module.exports = async function (context, req) {
 }
 
 // Helper: pull down the latest metadata blobs (sorted by last modified) up to the desired count.
-async function listLatestMetadataBlobs(metadataContainerClient, desired) {
+async function listLatestMetadataBlobs (metadataContainerClient, desired) {
   const results = []
   const pageSize = Math.max(desired, 10)
   const iterator = metadataContainerClient.listBlobsFlat({ includeMetadata: false }).byPage({
@@ -138,7 +138,7 @@ async function listLatestMetadataBlobs(metadataContainerClient, desired) {
   return results
 }
 
-async function streamToBuffer(readableStream) {
+async function streamToBuffer (readableStream) {
   if (!readableStream) return Buffer.alloc(0)
   const chunks = []
   for await (const chunk of readableStream) {

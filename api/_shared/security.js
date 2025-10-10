@@ -10,7 +10,7 @@ class UnauthorizedError extends Error {
 }
 
 // Throws if the provided request does not include the configured API key.
-function ensureAuthorized(req) {
+function ensureAuthorized (req) {
   const expectedKey = process.env.API_KEY
   if (!expectedKey) return
 

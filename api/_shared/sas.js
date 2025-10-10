@@ -3,7 +3,7 @@
 const { BlobSASPermissions, generateBlobSASQueryParameters } = require('@azure/storage-blob')
 
 // Generates a short-lived read SAS URL for a given blob client.
-function createReadSasUrl({ blobClient, credential, expiresInMinutes = 60 }) {
+function createReadSasUrl ({ blobClient, credential, expiresInMinutes = 60 }) {
   if (!credential) {
     throw new Error('Storage credential not available. Ensure a shared key connection string is used.')
   }
