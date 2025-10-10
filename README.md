@@ -46,6 +46,8 @@ Provision the following resources (or reuse existing ones) and add these setting
 | `AZURE_METADATA_CONTAINER` | (Optional) Container that stores JSON metadata per analysis. Defaults to `analysis-metadata`. |
 | `AZURE_VISION_ENDPOINT` | Endpoint of the Azure AI Vision resource (e.g. `https://<resource>.cognitiveservices.azure.com`). |
 | `AZURE_VISION_KEY` | Primary or secondary key for the Vision resource. |
+| `API_KEY` | (Optional) Shared secret required in the `x-api-key` header (or `api_key` query) to call the Functions. |
+| `MAX_IMAGE_SIZE_BYTES` | (Optional) Maximum accepted upload size in bytes (default 6 MB). |
 
 All settings must be present before running the Functions in Azure; otherwise requests will return a 500 with details about the missing configuration.
 

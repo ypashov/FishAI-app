@@ -1,11 +1,25 @@
 'use strict'
 
-const { BlobServiceClient, BlobSASPermissions, generateBlobSASQueryParameters } = require('@azure/storage-blob')
+const { BlobServiceClient } = require('@azure/storage-blob')
+const { createReadSasUrl } = require('../_shared/sas')
+const { ensureAuthorized, UnauthorizedError } = require('../_shared/security')
+
+const CACHE_TTL_MS = Number(process.env.RECENT_CACHE_TTL_MS || 60_000) // default 60 seconds
+const MAX_LIMIT = 50
+const MIN_LIMIT = 1
+
+let cachedResults = {
+  items: [],
+  expiresAt: 0,
+  pageSize: 0
+}
 
 module.exports = async function (context, req) {
-  const limit = Math.max(1, Math.min(parseInt(req.query.limit, 10) || 5, 25))
+  const limit = Math.max(MIN_LIMIT, Math.min(parseInt(req.query.limit, 10) || 5, MAX_LIMIT))
 
   try {
+    ensureAuthorized(req)
+
     const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING
     const containerName = process.env.AZURE_STORAGE_CONTAINER || 'uploads'
     const metadataContainerName = process.env.AZURE_METADATA_CONTAINER || 'analysis-metadata'
@@ -14,20 +28,23 @@ module.exports = async function (context, req) {
       throw new Error('Missing AZURE_STORAGE_CONNECTION_STRING configuration value.')
     }
 
+    const now = Date.now()
+    if (now < cachedResults.expiresAt && cachedResults.pageSize >= limit) {
+      context.res = {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+        body: { items: cachedResults.items.slice(0, limit) }
+      }
+      return
+    }
+
     const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString)
     const metadataContainerClient = blobServiceClient.getContainerClient(metadataContainerName)
+    const containerClient = blobServiceClient.getContainerClient(containerName)
 
-    const credential = blobServiceClient.credential
-    if (!credential) {
-      throw new Error('Storage credential not available. Ensure you are using a shared key connection string.')
-    }
-
-    const entries = []
-    for await (const blob of metadataContainerClient.listBlobsFlat({ includeMetadata: false })) {
-      entries.push(blob)
-    }
-
-    if (!entries.length) {
+    const blobs = await listLatestMetadataBlobs(metadataContainerClient, limit * 2)
+    if (!blobs.length) {
+      cachedResults = { items: [], expiresAt: now + CACHE_TTL_MS, pageSize: 0 }
       context.res = {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
@@ -36,12 +53,8 @@ module.exports = async function (context, req) {
       return
     }
 
-    entries.sort((a, b) => new Date(b.properties.lastModified) - new Date(a.properties.lastModified))
-    const selected = entries.slice(0, limit)
-    const containerClient = blobServiceClient.getContainerClient(containerName)
-
-    const results = []
-    for (const blob of selected) {
+    const items = []
+    for (const blob of blobs) {
       const metadataBlobClient = metadataContainerClient.getBlobClient(blob.name)
       const download = await metadataBlobClient.download()
       const body = await streamToBuffer(download.readableStreamBody)
@@ -50,42 +63,76 @@ module.exports = async function (context, req) {
       const imageBlobName = record.blobName
       const imageBlobClient = containerClient.getBlobClient(imageBlobName)
 
-      const sasToken = generateBlobSASQueryParameters(
-        {
-          containerName,
-          blobName: imageBlobName,
-          permissions: BlobSASPermissions.parse('r'),
-          startsOn: new Date(Date.now() - 5 * 60 * 1000),
-          expiresOn: new Date(Date.now() + 60 * 60 * 1000),
-          protocol: 'https'
-        },
-        credential
-      ).toString()
+      const sasUrl = createReadSasUrl({
+        blobClient: imageBlobClient,
+        credential: blobServiceClient.credential
+      })
 
-      results.push({
+      items.push({
         id: record.id || imageBlobName,
         analyzedAt: record.analyzedAt,
         blobName: imageBlobName,
         fileName: record.fileName,
         objects: record.objects || [],
-        description: record.description || null,
+        caption: record.caption || null,
         captionConfidence: record.captionConfidence || null,
-        sasUrl: `${imageBlobClient.url}?${sasToken}`
+        sasUrl
       })
+
+      if (items.length === limit) {
+        break
+      }
+    }
+
+    cachedResults = {
+      items,
+      expiresAt: now + CACHE_TTL_MS,
+      pageSize: items.length
     }
 
     context.res = {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: { items: results }
+      body: { items }
     }
   } catch (error) {
+    if (error instanceof UnauthorizedError) {
+      context.res = {
+        status: error.statusCode,
+        body: { error: error.message }
+      }
+      return
+    }
+
     context.log.error('recent: failed to load recent analyses', error)
     context.res = {
       status: 500,
       body: { error: error.message || 'Unable to load recent analyses.' }
     }
   }
+}
+
+async function listLatestMetadataBlobs(metadataContainerClient, desired) {
+  const results = []
+  const pageSize = Math.max(desired, 10)
+  const iterator = metadataContainerClient.listBlobsFlat({ includeMetadata: false }).byPage({
+    maxPageSize: pageSize
+  })
+
+  const firstPage = await iterator.next()
+  if (firstPage.done || !firstPage.value.segment) {
+    return results
+  }
+
+  const blobs = firstPage.value.segment.blobItems || []
+  blobs.sort((a, b) => new Date(b.properties.lastModified) - new Date(a.properties.lastModified))
+
+  for (const blob of blobs) {
+    results.push(blob)
+    if (results.length >= desired) break
+  }
+
+  return results
 }
 
 async function streamToBuffer(readableStream) {

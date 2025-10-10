@@ -61,7 +61,12 @@ export default function Results() {
     const incoming = location.state.prediction
     setPrediction(incoming)
     setImageSource(incoming.sasUrl || incoming.previewDataUrl || '')
-    window.localStorage?.setItem(STORAGE_KEY, JSON.stringify(incoming))
+    const safeSnapshot = {
+      ...incoming,
+      sasUrl: undefined,
+      blobUrl: undefined
+    }
+    window.localStorage?.setItem(STORAGE_KEY, JSON.stringify(safeSnapshot))
   }, [location.state])
 
   useEffect(() => {

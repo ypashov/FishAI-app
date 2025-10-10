@@ -1,12 +1,27 @@
 'use strict'
 
-const { BlobServiceClient, BlobSASPermissions, generateBlobSASQueryParameters } = require('@azure/storage-blob')
+const { BlobServiceClient } = require('@azure/storage-blob')
 const crypto = require('node:crypto')
+const { createReadSasUrl } = require('../_shared/sas')
+const { ensureAuthorized, UnauthorizedError } = require('../_shared/security')
+
+const ALLOWED_CONTENT_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+  'image/heic',
+  'image/heif'
+])
+const DEFAULT_MAX_BYTES = 6 * 1024 * 1024 // 6 MB
+const MAX_IMAGE_SIZE_BYTES = Number(process.env.MAX_IMAGE_SIZE_BYTES || DEFAULT_MAX_BYTES)
 
 module.exports = async function (context, req) {
   context.log('upload-and-analyze: request received')
 
   try {
+    ensureAuthorized(req)
+
     const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING
     const containerName = process.env.AZURE_STORAGE_CONTAINER || 'uploads'
     const metadataContainerName = process.env.AZURE_METADATA_CONTAINER || 'analysis-metadata'
@@ -20,7 +35,11 @@ module.exports = async function (context, req) {
       throw new Error('Missing Azure Vision configuration. Set AZURE_VISION_ENDPOINT and AZURE_VISION_KEY.')
     }
 
-    const { fileName = 'upload.jpg', contentType = 'application/octet-stream', data } = req.body || {}
+    const {
+      fileName = 'upload.jpg',
+      contentType: providedContentType = 'application/octet-stream',
+      data
+    } = req.body || {}
 
     if (!data || typeof data !== 'string') {
       context.log.warn('upload-and-analyze: invalid payload received')
@@ -31,18 +50,41 @@ module.exports = async function (context, req) {
       return
     }
 
+    const normalizedContentType = (providedContentType || '').toLowerCase()
+    if (!ALLOWED_CONTENT_TYPES.has(normalizedContentType)) {
+      context.log.warn(`upload-and-analyze: rejected contentType ${normalizedContentType}`)
+      context.res = {
+        status: 400,
+        body: { error: 'Unsupported image content type.' }
+      }
+      return
+    }
+
     const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9_.-]/g, '_')
     const blobName = `${crypto.randomUUID()}-${sanitizedFileName}`
 
-    const base64 = data.includes(',') ? data.split(',').pop() : data
+    const base64Payload = data.includes(',') ? data.split(',').pop() : data
     let buffer
     try {
-      buffer = Buffer.from(base64, 'base64')
+      buffer = Buffer.from(base64Payload, 'base64')
     } catch (err) {
       context.log.error('upload-and-analyze: failed parsing base64 payload', err)
       context.res = {
         status: 400,
         body: { error: 'Unable to decode image payload. Ensure the data is base64 encoded.' }
+      }
+      return
+    }
+
+    if (!buffer.length || buffer.length > MAX_IMAGE_SIZE_BYTES) {
+      context.log.warn(
+        `upload-and-analyze: payload rejected due to size (${buffer.length} bytes, limit ${MAX_IMAGE_SIZE_BYTES})`
+      )
+      context.res = {
+        status: 400,
+        body: {
+          error: `Image exceeds maximum size of ${Math.round(MAX_IMAGE_SIZE_BYTES / (1024 * 1024))} MB or is empty.`
+        }
       }
       return
     }
@@ -54,27 +96,13 @@ module.exports = async function (context, req) {
 
     const blockBlobClient = containerClient.getBlockBlobClient(blobName)
     await blockBlobClient.upload(buffer, buffer.length, {
-      blobHTTPHeaders: { blobContentType: contentType }
+      blobHTTPHeaders: { blobContentType: normalizedContentType }
     })
 
-    const credential = blobServiceClient.credential
-    if (!credential) {
-      throw new Error('Storage credential not available. Ensure you are using a shared key connection string.')
-    }
-
-    const sasToken = generateBlobSASQueryParameters(
-      {
-        containerName,
-        blobName,
-        permissions: BlobSASPermissions.parse('r'),
-        startsOn: new Date(Date.now() - 5 * 60 * 1000),
-        expiresOn: new Date(Date.now() + 60 * 60 * 1000),
-        protocol: 'https'
-      },
-      credential
-    ).toString()
-
-    const sasUrl = `${blockBlobClient.url}?${sasToken}`
+    const sasUrl = createReadSasUrl({
+      blobClient: blockBlobClient,
+      credential: blobServiceClient.credential
+    })
 
     const endpoint = visionEndpoint.replace(/\/+$/, '')
     const analyzeUrl = `${endpoint}/vision/v3.2/analyze?visualFeatures=Description,Tags,Objects`
@@ -83,7 +111,7 @@ module.exports = async function (context, req) {
       method: 'POST',
       headers: {
         'Ocp-Apim-Subscription-Key': visionKey,
-        'Content-Type': contentType || 'application/octet-stream'
+        'Content-Type': normalizedContentType
       },
       body: buffer
     })
@@ -117,11 +145,10 @@ module.exports = async function (context, req) {
     const metadataRecord = {
       id: crypto.randomUUID(),
       blobName,
-      blobUrl: blockBlobClient.url,
       container: containerName,
-      contentType,
+      contentType: normalizedContentType,
       fileName,
-      description: caption?.text || null,
+      caption: caption?.text || null,
       captionConfidence: caption?.confidence || null,
       tags,
       objects,
@@ -147,11 +174,18 @@ module.exports = async function (context, req) {
           : 'No description available.',
         tags,
         objects,
-        rawAnalysis: analysis,
         analyzedAt
       }
     }
   } catch (error) {
+    if (error instanceof UnauthorizedError) {
+      context.res = {
+        status: error.statusCode,
+        body: { error: error.message }
+      }
+      return
+    }
+
     context.log.error('upload-and-analyze: unexpected error', error)
     context.res = {
       status: 500,

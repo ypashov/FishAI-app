@@ -1,11 +1,14 @@
 'use strict'
 
 const { BlobServiceClient } = require('@azure/storage-blob')
+const { ensureAuthorized, UnauthorizedError } = require('../_shared/security')
 
 module.exports = async function (context, req) {
   context.log('stats: incoming request')
 
   try {
+    ensureAuthorized(req)
+
     const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING
     const containerName = process.env.AZURE_STORAGE_CONTAINER || 'uploads'
     const metadataContainerName = process.env.AZURE_METADATA_CONTAINER || 'analysis-metadata'
@@ -39,6 +42,14 @@ module.exports = async function (context, req) {
       }
     }
   } catch (error) {
+    if (error instanceof UnauthorizedError) {
+      context.res = {
+        status: error.statusCode,
+        body: { error: error.message }
+      }
+      return
+    }
+
     context.log.error('stats: failed to compute total recognitions', error)
     context.res = {
       status: 500,

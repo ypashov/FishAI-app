@@ -79,7 +79,12 @@ export default function Upload() {
         previewDataUrl: dataUrl
       }
 
-      window.localStorage?.setItem(STORAGE_KEY, JSON.stringify(prediction))
+      const safePrediction = {
+        ...prediction,
+        sasUrl: undefined,
+        blobUrl: undefined
+      }
+      window.localStorage?.setItem(STORAGE_KEY, JSON.stringify(safePrediction))
       setStatus('Done! Redirecting...')
       navigate('/results', { state: { prediction } })
     } catch (err) {
