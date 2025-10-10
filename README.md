@@ -36,6 +36,14 @@ npm run build
 npm run preview
 ```
 
+## Quality checks
+- `npm run lint` runs ESLint across the entire repo.
+- `npm run test:frontend` executes Vitest/Testing Library suites against React components.
+- `npm run test:backend` runs Vitest in Node mode for shared function utilities.
+- `npm run test` runs both frontend and backend tests.
+
+`simple-git-hooks` installs a `pre-commit` hook (via the `prepare` script) that runs `npm run lint` and `npm run test`. When cloning the repo, ensure you execute `npm install` so the hooks are configured locally.
+
 ## Azure Configuration
 Provision the following resources (or reuse existing ones) and add these settings in your Static Web App configuration (or surface them as GitHub secrets if you prefer to bind via workflow):
 

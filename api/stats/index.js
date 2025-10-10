@@ -3,6 +3,8 @@
 const { BlobServiceClient } = require('@azure/storage-blob')
 const { ensureAuthorized, UnauthorizedError } = require('../_shared/security')
 
+// Lightweight counter endpoint that reports how many analyses have been recorded.
+
 module.exports = async function (context, req) {
   context.log('stats: incoming request')
 

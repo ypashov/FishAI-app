@@ -5,6 +5,7 @@ const crypto = require('node:crypto')
 const { createReadSasUrl } = require('../_shared/sas')
 const { ensureAuthorized, UnauthorizedError } = require('../_shared/security')
 
+// Handles direct uploads, stores metadata, and captures Vision insights.
 // Restrict uploads to known-safe image MIME types.
 const ALLOWED_CONTENT_TYPES = new Set([
   'image/jpeg',
