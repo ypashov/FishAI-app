@@ -1,3 +1,8 @@
+/**
+ * Home.jsx
+ * Landing page that introduces the Fish Classifier demo and surfaces headline
+ * metrics plus a gallery of the most recent public analyses.
+ */
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -49,10 +54,12 @@ export default function Home() {
     }
   }, [])
 
+  // Present a friendly fallback while data is loading or unavailable.
   const displayCount = totalRecognitions !== null ? totalRecognitions.toLocaleString() : 'N/A'
 
   return (
     <div className="space-y-10">
+      {/* Hero section: project pitch + primary calls to action */}
       <section className="space-y-6 rounded-2xl bg-slate-900/70 p-8 shadow-lg shadow-slate-950/40">
         <div className="space-y-4">
           <p className="text-xs uppercase tracking-wide text-blue-400/80">Fish Classifier (Demo)</p>
@@ -77,6 +84,7 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Metrics + recent analyses mosaic */}
       <section className="grid gap-6 md:grid-cols-3">
         <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-6">
           <span className="text-xs font-semibold uppercase tracking-wide text-blue-300">
@@ -102,6 +110,7 @@ export default function Home() {
           {loadingRecent && !recent.length ? (
             <p className="text-sm text-slate-500">Fetching recent analyses...</p>
           ) : recent.length ? (
+            // List of the latest uploads with quick object callouts
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {recent.map((item) => {
                 const primaryObject = item.objects?.[0]

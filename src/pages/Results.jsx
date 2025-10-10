@@ -1,3 +1,8 @@
+/**
+ * Results.jsx
+ * Displays the most recent inference result, including detected objects and a
+ * gallery of the latest public analyses for quick comparison.
+ */
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
@@ -18,7 +23,7 @@ function readStoredPrediction() {
 
 function formatConfidence(value) {
   if (typeof value !== 'number') return 'N/A'
-  return `${Math.round(value * 100)}%`
+  return ${Math.round(value * 100)}%
 }
 
 // Results hub: shows the active analysis and a list of recent public uploads.
@@ -40,9 +45,9 @@ export default function Results() {
       setLoadingRecent(true)
       setRecentError('')
       try {
-        const response = await fetch(`/api/recent?limit=${RECENT_LIMIT}`)
+        const response = await fetch(/api/recent?limit=)
         const payload = await response.json().catch(() => ({}))
-        if (!response.ok) throw new Error(payload.error || `Recent request failed (${response.status})`)
+        if (!response.ok) throw new Error(payload.error || Recent request failed ())
         setRecent(payload.items || [])
         if (!prediction && payload.items && payload.items.length) {
           setPrediction(payload.items[0])
@@ -77,12 +82,14 @@ export default function Results() {
     setImageSource(prediction.sasUrl || prediction.previewDataUrl || '')
   }, [prediction])
 
+  // Recover gracefully if the temporary SAS URL has expired.
   const handleImageError = () => {
     if (prediction?.previewDataUrl) {
       setImageSource(prediction.previewDataUrl)
     }
   }
 
+  // Selecting an item from the recent gallery updates the active result view.
   const handleSelectRecent = (item) => {
     setPrediction(item)
     setImageSource(item.sasUrl || item.previewDataUrl || '')
@@ -108,8 +115,10 @@ export default function Results() {
 
   const { objects = [], analyzedAt, fileName, sasUrl, id: currentId } = prediction
 
+  // Render the active analysis along with supporting panels.
   return (
     <div className="space-y-6">
+      {/* Latest analysis headline + shortcut to upload another */}
       <div className="flex flex-col gap-3 rounded-2xl bg-slate-900/70 p-6 shadow-lg shadow-slate-950/40 md:flex-row md:items-center md:justify-between">
         <div>
           <h2 className="text-xl font-semibold text-slate-50">Latest fish analysis</h2>
@@ -125,6 +134,7 @@ export default function Results() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
+        {/* Primary media panel with metadata */}
         <div className="space-y-4 rounded-2xl bg-slate-900/70 p-5 shadow-lg shadow-slate-950/40">
           {imageSource ? (
             <img
@@ -152,13 +162,14 @@ export default function Results() {
           </div>
         </div>
 
+        {/* Object/cue breakdown panel */}
         <div className="space-y-4 rounded-2xl bg-slate-900/70 p-5 shadow-lg shadow-slate-950/40">
           <div className="space-y-2">
             <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Detected cues</span>
             {objects.length ? (
               <div className="space-y-1 text-sm text-slate-300">
                 {objects.slice(0, 8).map((obj, index) => (
-                  <div key={`${obj.name}-${index}`}>
+                  <div key={${obj.name}-}>
                     {obj.name} - {formatConfidence(obj.confidence)}
                   </div>
                 ))}
@@ -170,6 +181,7 @@ export default function Results() {
         </div>
       </div>
 
+      {/* Recent gallery */}
       <section className="rounded-2xl bg-slate-900/70 p-5 shadow-lg shadow-slate-950/40">
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-400">Recent analyses</h3>
@@ -191,11 +203,7 @@ export default function Results() {
                   key={item.id}
                   type="button"
                   onClick={() => handleSelectRecent(item)}
-                  className={`flex items-center gap-3 rounded-lg border p-3 text-left transition ${
-                    currentId === item.id
-                      ? 'border-blue-500 bg-slate-900'
-                      : 'border-slate-800 bg-slate-950/70 hover:border-slate-700'
-                  }`}
+                  className={lex items-center gap-3 rounded-lg border p-3 text-left transition }
                 >
                   {item.sasUrl ? (
                     <img

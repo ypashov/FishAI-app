@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config'
+/**\n * vitest.backend.config.js\n * Runs backend/unit tests in a Node environment for shared function utilities.\n */\nimport { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   test: {
@@ -9,3 +9,4 @@ export default defineConfig({
     }
   }
 })
+

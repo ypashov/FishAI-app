@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
+/**
+ * security.test.js
+ * Validates API key enforcement helper to ensure unauthorized requests are blocked.
+ */
 import securityModule from '../_shared/security.js'
 
 const { ensureAuthorized, UnauthorizedError } = securityModule

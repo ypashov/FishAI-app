@@ -1,3 +1,8 @@
+/**
+ * Upload.jsx
+ * Handles the client-side workflow for uploading a fish image and forwarding
+ * it to the backend for analysis while providing user feedback.
+ */
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -22,6 +27,7 @@ export default function Upload() {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
 
+  // Process file selection updates and generate a preview when possible.
   const handleFileChange = async (event) => {
     const nextFile = event.target.files?.[0] || null
     setFile(nextFile)
@@ -42,6 +48,7 @@ export default function Upload() {
     }
   }
 
+  // Reset the form back to its initial state.
   const handleClear = () => {
     setFile(null)
     setPreview(null)
@@ -49,6 +56,7 @@ export default function Upload() {
     setError('')
   }
 
+  // Submit the chosen file to the backend for storage + analysis.
   const handleSubmit = async (event) => {
     event.preventDefault()
     if (!file || busy) return
@@ -145,3 +153,4 @@ export default function Upload() {
     </div>
   )
 }
+

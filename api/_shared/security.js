@@ -1,5 +1,10 @@
 'use strict'
 
+/**
+ * security.js
+ * Lightweight helpers for enforcing optional API-key based access to Azure Functions.
+ */
+
 // Lightweight auth helper for Azure Functions. Used to gate access with a shared API key.
 class UnauthorizedError extends Error {
   constructor (message = 'Unauthorized') {

@@ -1,3 +1,8 @@
+/**
+ * App.jsx
+ * Root layout component that provides persistent navigation and footer chrome
+ * for the Fish Classifier (Demo) single page application.
+ */
 import { NavLink, Outlet } from 'react-router-dom'
 
 // Shared shell for the SPA; wraps page routes with header and footer chrome.
@@ -8,6 +13,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4">
+        {/* Header: branding + primary navigation links */}
         <header className="flex flex-col gap-4 py-8 md:flex-row md:items-center md:justify-between">
           <NavLink to="/" className="flex items-center gap-3 text-slate-100">
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500 text-sm font-semibold">
@@ -53,10 +59,12 @@ export default function App() {
           </nav>
         </header>
 
+        {/* Routed page content */}
         <main className="flex-1 pb-10">
           <Outlet />
         </main>
 
+        {/* Simple footer attribution */}
         <footer className="border-t border-slate-900 py-8 text-center text-xs text-slate-500">
           © {new Date().getFullYear()} Fish Classifier (Demo)
         </footer>

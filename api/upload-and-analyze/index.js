@@ -1,5 +1,10 @@
 'use strict'
 
+/**
+ * upload-and-analyze/index.js
+ * HTTP-triggered Azure Function that accepts client uploads, stores the image,
+ * calls Azure AI Vision for analysis, and returns structured results.
+ */
 const { BlobServiceClient } = require('@azure/storage-blob')
 const crypto = require('node:crypto')
 const { createReadSasUrl } = require('../_shared/sas')

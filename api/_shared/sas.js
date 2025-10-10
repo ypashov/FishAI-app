@@ -1,5 +1,10 @@
 'use strict'
 
+/**
+ * sas.js
+ * Central helper for generating read-only SAS URLs for blobs; supports dependency
+ * injection so unit tests can stub Azure SDK behavior.
+ */
 const { BlobSASPermissions, generateBlobSASQueryParameters } = require('@azure/storage-blob')
 
 // Generates a short-lived read SAS URL for a given blob client.

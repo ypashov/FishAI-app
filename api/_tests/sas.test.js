@@ -1,3 +1,7 @@
+/**
+ * sas.test.js
+ * Exercises the SAS helper by injecting stubs to verify output formatting and error handling.
+ */
 import { describe, expect, it } from 'vitest'
 
 const { createReadSasUrl } = await import('../_shared/sas.js')

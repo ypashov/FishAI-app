@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config'
+/**\n * vitest.frontend.config.js\n * Configures Vitest for React component testing using a jsdom environment.\n */\nimport { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig({
@@ -10,3 +10,4 @@ export default defineConfig({
     include: ['src/**/*.test.{js,jsx}']
   }
 })
+
