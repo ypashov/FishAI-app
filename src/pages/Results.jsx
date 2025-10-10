@@ -23,7 +23,7 @@ function readStoredPrediction() {
 
 function formatConfidence(value) {
   if (typeof value !== 'number') return 'N/A'
-  return ${Math.round(value * 100)}%
+      return `${Math.round(value * 100)}%`
 }
 
 // Results hub: shows the active analysis and a list of recent public uploads.
@@ -242,3 +242,4 @@ export default function Results() {
     </div>
   )
 }
+
