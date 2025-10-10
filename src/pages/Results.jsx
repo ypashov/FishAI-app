@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 const STORAGE_KEY = 'fishai:lastPrediction'
-const RECENT_LIMIT = 5
+const RECENT_LIMIT = 20
 
 function readStoredPrediction() {
   if (typeof window === 'undefined') return null
@@ -151,7 +151,7 @@ export default function Results() {
               <div className="space-y-1 text-sm text-slate-300">
                 {objects.slice(0, 8).map((obj, index) => (
                   <div key={`${obj.name}-${index}`}>
-                    {obj.name} · {formatConfidence(obj.confidence)}
+                    {obj.name} - {formatConfidence(obj.confidence)}
                   </div>
                 ))}
               </div>
@@ -175,7 +175,7 @@ export default function Results() {
         {loadingRecent && !recent.length ? (
           <p className="text-sm text-slate-500">Fetching latest analyses...</p>
         ) : recent.length ? (
-          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {recent.map((item) => {
               const primaryObject = item.objects?.[0]
               return (
@@ -200,7 +200,7 @@ export default function Results() {
                     />
                   ) : (
                     <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-slate-900 text-xs text-slate-500">
-                      —
+                      --
                     </div>
                   )}
                   <div className="min-w-0">
@@ -209,7 +209,7 @@ export default function Results() {
                     </div>
                     {primaryObject ? (
                       <div className="text-xs text-slate-500">
-                        {primaryObject.name} · {formatConfidence(primaryObject.confidence)}
+                        {primaryObject.name} - {formatConfidence(primaryObject.confidence)}
                       </div>
                     ) : (
                       <div className="text-xs text-slate-500">No objects detected</div>
