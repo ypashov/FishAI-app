@@ -20,6 +20,7 @@ module.exports = async function (context, req) {
     const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString)
     const containerClient = blobServiceClient.getContainerClient(metadataContainerName)
 
+    // Count metadata blobs instead of raw images so thumbnails and uploads stay in sync.
     let total = 0
     try {
       await containerClient.getProperties()

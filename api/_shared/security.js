@@ -1,5 +1,6 @@
 'use strict'
 
+// Lightweight auth helper for Azure Functions. Used to gate access with a shared API key.
 class UnauthorizedError extends Error {
   constructor(message = 'Unauthorized') {
     super(message)
@@ -8,6 +9,7 @@ class UnauthorizedError extends Error {
   }
 }
 
+// Throws if the provided request does not include the configured API key.
 function ensureAuthorized(req) {
   const expectedKey = process.env.API_KEY
   if (!expectedKey) return
@@ -21,6 +23,7 @@ function ensureAuthorized(req) {
 }
 
 module.exports = {
+  // Re-export for downstream functions.
   ensureAuthorized,
   UnauthorizedError
 }

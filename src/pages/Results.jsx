@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 const STORAGE_KEY = 'fishai:lastPrediction'
 const RECENT_LIMIT = 20
 
+// Pull the last analysis from storage (if available) to prime the page when navigating directly.
 function readStoredPrediction() {
   if (typeof window === 'undefined') return null
   try {
@@ -20,6 +21,7 @@ function formatConfidence(value) {
   return `${Math.round(value * 100)}%`
 }
 
+// Results hub: shows the active analysis and a list of recent public uploads.
 export default function Results() {
   const location = useLocation()
   const navigate = useNavigate()
@@ -33,6 +35,7 @@ export default function Results() {
   const [recentError, setRecentError] = useState('')
 
   useEffect(() => {
+    // Keep the shared gallery refreshed when the component mounts or prediction changes.
     async function loadRecent() {
       setLoadingRecent(true)
       setRecentError('')

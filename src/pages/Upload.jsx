@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 
 const STORAGE_KEY = 'fishai:lastPrediction'
 
+// Utility: wrap FileReader in a Promise for easier async/await handling.
 function readFileAsDataUrl(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -12,6 +13,7 @@ function readFileAsDataUrl(file) {
   })
 }
 
+// Handles the upload form and kicks off analysis.
 export default function Upload() {
   const navigate = useNavigate()
   const [file, setFile] = useState(null)

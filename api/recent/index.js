@@ -4,6 +4,7 @@ const { BlobServiceClient } = require('@azure/storage-blob')
 const { createReadSasUrl } = require('../_shared/sas')
 const { ensureAuthorized, UnauthorizedError } = require('../_shared/security')
 
+// Cache the recent list server-side to reduce storage churn under load.
 const CACHE_TTL_MS = Number(process.env.RECENT_CACHE_TTL_MS || 60_000) // default 60 seconds
 const MAX_LIMIT = 50
 const MIN_LIMIT = 1
@@ -42,6 +43,7 @@ module.exports = async function (context, req) {
     const metadataContainerClient = blobServiceClient.getContainerClient(metadataContainerName)
     const containerClient = blobServiceClient.getContainerClient(containerName)
 
+    // Fetch slightly more than requested in case some records lack data.
     const blobs = await listLatestMetadataBlobs(metadataContainerClient, limit * 2)
     if (!blobs.length) {
       cachedResults = { items: [], expiresAt: now + CACHE_TTL_MS, pageSize: 0 }
@@ -112,6 +114,7 @@ module.exports = async function (context, req) {
   }
 }
 
+// Helper: pull down the latest metadata blobs (sorted by last modified) up to the desired count.
 async function listLatestMetadataBlobs(metadataContainerClient, desired) {
   const results = []
   const pageSize = Math.max(desired, 10)

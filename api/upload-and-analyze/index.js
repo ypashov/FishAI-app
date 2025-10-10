@@ -5,6 +5,7 @@ const crypto = require('node:crypto')
 const { createReadSasUrl } = require('../_shared/sas')
 const { ensureAuthorized, UnauthorizedError } = require('../_shared/security')
 
+// Restrict uploads to known-safe image MIME types.
 const ALLOWED_CONTENT_TYPES = new Set([
   'image/jpeg',
   'image/png',
@@ -20,6 +21,7 @@ module.exports = async function (context, req) {
   context.log('upload-and-analyze: request received')
 
   try {
+    // Optional shared-secret enforcement.
     ensureAuthorized(req)
 
     const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING
@@ -63,6 +65,7 @@ module.exports = async function (context, req) {
     const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9_.-]/g, '_')
     const blobName = `${crypto.randomUUID()}-${sanitizedFileName}`
 
+    // Strip base64 prefix if present (e.g. data URLs).
     const base64Payload = data.includes(',') ? data.split(',').pop() : data
     let buffer
     try {
@@ -107,6 +110,7 @@ module.exports = async function (context, req) {
     const endpoint = visionEndpoint.replace(/\/+$/, '')
     const analyzeUrl = `${endpoint}/vision/v3.2/analyze?visualFeatures=Description,Tags,Objects`
 
+    // Forward the original binary buffer directly to Vision for best fidelity.
     const visionResponse = await fetch(analyzeUrl, {
       method: 'POST',
       headers: {

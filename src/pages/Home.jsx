@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 
 const RECENT_LIMIT = 6
 
+// Landing page: highlights headline metrics plus a snapshot of recent analyses.
 export default function Home() {
   const [totalRecognitions, setTotalRecognitions] = useState(null)
   const [recent, setRecent] = useState([])
@@ -12,6 +13,7 @@ export default function Home() {
   useEffect(() => {
     let isMounted = true
 
+    // Fetch aggregate counters once on mount.
     async function loadStats() {
       try {
         const response = await fetch('/api/stats')
@@ -23,6 +25,7 @@ export default function Home() {
       }
     }
 
+    // Fetch the public feed of recent analyses.
     async function loadRecent() {
       setLoadingRecent(true)
       setRecentError('')
