@@ -1,1 +1,29 @@
-'use strict'\n\nconst { BlobSASPermissions, generateBlobSASQueryParameters } = require('@azure/storage-blob')\n\n// Generates a short-lived read SAS URL for a given blob client.\nfunction createReadSasUrl ({ blobClient, credential, expiresInMinutes = 60 }, azureLib = { BlobSASPermissions, generateBlobSASQueryParameters }) {\n  if (!credential) {\n    throw new Error('Storage credential not available. Ensure a shared key connection string is used.')\n  }\n\n  const sasToken = azureLib.generateBlobSASQueryParameters(\n    {\n      containerName: blobClient.containerName,\n      blobName: blobClient.name,\n      permissions: azureLib.BlobSASPermissions.parse('r'),\n      startsOn: new Date(Date.now() - 5 * 60 * 1000),\n      expiresOn: new Date(Date.now() + expiresInMinutes * 60 * 1000),\n      protocol: 'https'\n    },\n    credential\n  ).toString()\n\n  return ${blobClient.url}?\n}\n\nmodule.exports = {\n  // Single entry-point for SAS generation to keep permissions consistent.\n  createReadSasUrl\n}\n
+'use strict'
+
+const { BlobSASPermissions, generateBlobSASQueryParameters } = require('@azure/storage-blob')
+
+// Generates a short-lived read SAS URL for a given blob client.
+function createReadSasUrl ({ blobClient, credential, expiresInMinutes = 60 }, azureLib = { BlobSASPermissions, generateBlobSASQueryParameters }) {
+  if (!credential) {
+    throw new Error('Storage credential not available. Ensure a shared key connection string is used.')
+  }
+
+  const sasToken = azureLib.generateBlobSASQueryParameters(
+    {
+      containerName: blobClient.containerName,
+      blobName: blobClient.name,
+      permissions: azureLib.BlobSASPermissions.parse('r'),
+      startsOn: new Date(Date.now() - 5 * 60 * 1000),
+      expiresOn: new Date(Date.now() + expiresInMinutes * 60 * 1000),
+      protocol: 'https'
+    },
+    credential
+  ).toString()
+
+  return `${blobClient.url}?${sasToken}`
+}
+
+module.exports = {
+  // Single entry-point for SAS generation to keep permissions consistent.
+  createReadSasUrl
+}
