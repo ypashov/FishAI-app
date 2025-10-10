@@ -1,6 +1,18 @@
-import { describe, expect, it } from 'vitest'
-import { StorageSharedKeyCredential } from '@azure/storage-blob'
-import { createReadSasUrl } from '../_shared/sas.js'
+import { describe, expect, it, vi } from 'vitest'
+
+vi.mock('@azure/storage-blob', () => {
+  return {
+    BlobSASPermissions: {
+      parse: vi.fn(() => ({ parsed: true }))
+    },
+    generateBlobSASQueryParameters: vi.fn(() => ({
+      toString: () => 'signed-token'
+    }))
+  }
+})
+
+const azure = await import('@azure/storage-blob')
+const { createReadSasUrl } = await import('../_shared/sas.js')
 
 describe('createReadSasUrl', () => {
   it('throws when credential is missing', () => {
@@ -10,10 +22,11 @@ describe('createReadSasUrl', () => {
 
   it('generates a signed URL when credential is present', () => {
     const blobClient = { containerName: 'c', name: 'blob', url: 'https://example.com/blob' }
-    const credential = new StorageSharedKeyCredential('account', 'C2FhYWEwMTIzNDU2Nzg5MDEyMzQ1Njc4OTA=')
+    const credential = {}
 
     const signedUrl = createReadSasUrl({ blobClient, credential, expiresInMinutes: 10 })
-    expect(signedUrl).toContain(blobClient.url)
-    expect(signedUrl).toContain('sig=')
+    expect(signedUrl).toBe('https://example.com/blob?signed-token')
+    expect(azure.BlobSASPermissions.parse).toHaveBeenCalledWith('r')
+    expect(azure.generateBlobSASQueryParameters).toHaveBeenCalled()
   })
 })
