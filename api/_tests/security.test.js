@@ -1,10 +1,11 @@
-'use strict'
+import { describe, expect, it } from 'vitest'
 
-const { describe, it, expect } = require('vitest')
-const { ensureAuthorized, UnauthorizedError } = require('../_shared/security')
+import securityModule from '../_shared/security.js'
 
-describe('ensureAuthorized', () => {
-  it('allows requests when API_KEY is unset', () => {
+const { ensureAuthorized, UnauthorizedError } = securityModule
+
+describe('ensureAuthorized (API key enforcement)', () => {
+  it('allows request when API_KEY is unset', () => {
     const original = process.env.API_KEY
     delete process.env.API_KEY
 
@@ -13,12 +14,12 @@ describe('ensureAuthorized', () => {
     if (original) process.env.API_KEY = original
   })
 
-  it('throws when key is missing', () => {
+  it('throws UnauthorizedError when API key missing', () => {
     process.env.API_KEY = 'secret'
     expect(() => ensureAuthorized({ headers: {} })).toThrow(UnauthorizedError)
   })
 
-  it('accepts matching header key', () => {
+  it('accepts valid header key', () => {
     process.env.API_KEY = 'secret'
     expect(() =>
       ensureAuthorized({ headers: { 'x-api-key': 'secret' } })

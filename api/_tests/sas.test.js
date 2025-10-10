@@ -1,8 +1,6 @@
-'use strict'
-
-const { describe, it, expect } = require('vitest')
-const { StorageSharedKeyCredential } = require('@azure/storage-blob')
-const { createReadSasUrl } = require('../_shared/sas')
+import { describe, expect, it } from 'vitest'
+import { StorageSharedKeyCredential } from '@azure/storage-blob'
+import { createReadSasUrl } from '../_shared/sas.js'
 
 describe('createReadSasUrl', () => {
   it('throws when credential is missing', () => {
