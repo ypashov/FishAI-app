@@ -10,25 +10,11 @@ An Azure Static Web Apps site that lets anyone upload a fish photo, stores it in
 - GitHub Actions workflow ready for Azure Static Web Apps deployment (app + API).
 
 ## Architecture Overview
-1. The React app collects the image, previews it locally, and POSTs a base64 payload to `/api/upload-and-analyze`.
+1. The React app collects the image, previews it locally, and POSTs a payload to `/api/upload-and-analyze`.
 2. The upload Function writes the image to Blob Storage, calls Azure AI Vision for objects/tags, and saves a JSON metadata record alongside the blob.
 3. `/api/recent` enumerates the metadata container, generates short-lived SAS links for each image, and returns the latest analyses.
 4. `/api/stats` counts the metadata blobs to power the total recognitions counter on the home page.
 5. The React results page consumes both the direct upload response and `/api/recent` so the latest analyses (with thumbnails) are visible to everyone.
-
-## Local Development
-```bash
-# Frontend
-npm install
-npm run dev
-```
-
-To work on the Azure Functions locally you will need the [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local) and Node 18+.
-```bash
-cd api
-npm install
-func start
-```
 
 ## Build / Preview
 ```bash
@@ -62,12 +48,11 @@ All settings must be present before running the Functions in Azure; otherwise re
 ## Deploy to Azure Static Web Apps
 1. Create (or reuse) a Static Web App.
 2. Set **App location** to `.` and **Output location** to `dist`. The provided workflow deploys the Functions from `api/`.
-3. Populate the GitHub secret `AZURE_STATIC_WEB_APPS_API_TOKEN_KIND_FIELD_03B865710` (match the workflow name).
-4. After deployment, add the configuration settings listed above under **Settings -> Configuration** in the Static Web App.
+3. Populate the GitHub secret `AZURE_STATIC_WEB_APPS_API_TOKEN` (match the workflow name).
 
 ## Frontend Flow
 - `src/pages/Home.jsx`: loads shared stats and quick facts, with calls-to-action for upload/results.
 - `src/pages/Upload.jsx`: handles file selection, preview, API submission, and navigation to the results page.
 - `src/pages/Results.jsx`: fetches `/api/recent`, shows the active analysis (objects + preview), and lists the most recent analyses with thumbnails and detected objects.
 
-`staticwebapp.config.json` allows anonymous access to `/api/*` and enables client-side routing. Adjust the configuration if you later secure endpoints or change containers.
+`staticwebapp.config.json` allows access to `/api/*` and enables client-side routing. 
