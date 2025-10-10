@@ -2,7 +2,7 @@
 
 // Lightweight auth helper for Azure Functions. Used to gate access with a shared API key.
 class UnauthorizedError extends Error {
-  constructor(message = 'Unauthorized') {
+  constructor (message = 'Unauthorized') {
     super(message)
     this.name = 'UnauthorizedError'
     this.statusCode = 401
