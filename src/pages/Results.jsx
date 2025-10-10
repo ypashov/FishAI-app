@@ -23,7 +23,7 @@ function readStoredPrediction() {
 
 function formatConfidence(value) {
   if (typeof value !== 'number') return 'N/A'
-      return `${Math.round(value * 100)}%`
+  return `${Math.round(value * 100)}%`
 }
 
 // Results hub: shows the active analysis and a list of recent public uploads.
@@ -45,9 +45,9 @@ export default function Results() {
       setLoadingRecent(true)
       setRecentError('')
       try {
-        const response = await fetch(/api/recent?limit=)
+        const response = await fetch(`/api/recent?limit=${RECENT_LIMIT}`)
         const payload = await response.json().catch(() => ({}))
-        if (!response.ok) throw new Error(payload.error || Recent request failed ())
+        if (!response.ok) throw new Error(payload.error || `Recent request failed (${response.status})`)
         setRecent(payload.items || [])
         if (!prediction && payload.items && payload.items.length) {
           setPrediction(payload.items[0])
@@ -169,7 +169,7 @@ export default function Results() {
             {objects.length ? (
               <div className="space-y-1 text-sm text-slate-300">
                 {objects.slice(0, 8).map((obj, index) => (
-                  <div key={${obj.name}-}>
+                  <div key={`${obj.name}-${index}`}>
                     {obj.name} - {formatConfidence(obj.confidence)}
                   </div>
                 ))}
@@ -203,7 +203,11 @@ export default function Results() {
                   key={item.id}
                   type="button"
                   onClick={() => handleSelectRecent(item)}
-                  className={lex items-center gap-3 rounded-lg border p-3 text-left transition }
+                  className={`flex items-center gap-3 rounded-lg border p-3 text-left transition ${
+                    currentId === item.id
+                      ? 'border-blue-500 bg-slate-900'
+                      : 'border-slate-800 bg-slate-950/70 hover:border-slate-700'
+                  }`}
                 >
                   {item.sasUrl ? (
                     <img
@@ -242,4 +246,3 @@ export default function Results() {
     </div>
   )
 }
-
