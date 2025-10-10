@@ -12,7 +12,7 @@ module.exports = async function (context, req) {
     ensureAuthorized(req)
 
     const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING
-  const metadataContainerName = process.env.AZURE_METADATA_CONTAINER || 'analysis-metadata'
+    const metadataContainerName = process.env.AZURE_METADATA_CONTAINER || 'analysis-metadata'
 
     if (!connectionString) {
       throw new Error('Missing AZURE_STORAGE_CONNECTION_STRING configuration value.')
@@ -25,7 +25,8 @@ module.exports = async function (context, req) {
     let total = 0
     try {
       await containerClient.getProperties()
-      for await (const _ of containerClient.listBlobsFlat({ includeMetadata: false })) {
+      for await (const blob of containerClient.listBlobsFlat({ includeMetadata: false })) {
+        void blob
         total += 1
       }
     } catch (err) {
