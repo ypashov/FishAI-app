@@ -46,16 +46,15 @@ export default function Home() {
     }
   }, [])
 
-  const displayCount =
-    totalRecognitions !== null ? totalRecognitions.toLocaleString() : '—'
+  const displayCount = totalRecognitions !== null ? totalRecognitions.toLocaleString() : 'N/A'
 
   return (
     <div className="space-y-10">
       <section className="space-y-6 rounded-2xl bg-slate-900/70 p-8 shadow-lg shadow-slate-950/40">
         <div className="space-y-4">
-          <p className="text-xs uppercase tracking-wide text-blue-400/80">Fish AI</p>
+          <p className="text-xs uppercase tracking-wide text-blue-400/80">Fish Classifier (Demo)</p>
           <h1 className="text-3xl font-semibold text-slate-50">Know your catch with a single photo.</h1>
-          <p className="text-sm text-slate-400 max-w-2xl">
+          <p className="max-w-2xl text-sm text-slate-400">
             Upload a fish image and our recognition engine highlights the most probable species along with the visual cues it used to make the call.
           </p>
         </div>
@@ -82,14 +81,12 @@ export default function Home() {
           </span>
           <div className="mt-3 text-3xl font-semibold text-slate-50">{displayCount}</div>
           <p className="mt-2 text-xs text-slate-500">
-            Total recognitions completed across the Fish AI community.
+            Total recognitions completed across the Fish Classifier (Demo) community.
           </p>
         </div>
         <div className="md:col-span-2 rounded-xl border border-slate-800 bg-slate-950/70 p-6">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-              Recent analyses
-            </h2>
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">Recent analyses</h2>
             {loadingRecent ? (
               <span className="text-xs text-slate-500">Loading...</span>
             ) : (
@@ -121,7 +118,7 @@ export default function Home() {
                       />
                     ) : (
                       <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-slate-900 text-xs text-slate-500">
-                        —
+                        --
                       </div>
                     )}
                     <div className="min-w-0">
@@ -130,7 +127,7 @@ export default function Home() {
                       </div>
                       {primaryObject ? (
                         <div className="text-xs text-slate-500">
-                          {primaryObject.name} · {formatConfidence(primaryObject.confidence)}
+                          {primaryObject.name} - {formatConfidence(primaryObject.confidence)}
                         </div>
                       ) : (
                         <div className="text-xs text-slate-500">No objects detected</div>

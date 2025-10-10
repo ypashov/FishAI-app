@@ -1,4 +1,4 @@
-# Fish Recognition SPA (React + Vite + Tailwind + React Router)
+# Fish Classifier (Demo) SPA (React + Vite + Tailwind + React Router)
 
 An Azure Static Web Apps site that lets anyone upload a fish photo, stores it in Azure Blob Storage, and uses Azure AI Vision to describe what is in the image.
 
@@ -6,7 +6,7 @@ An Azure Static Web Apps site that lets anyone upload a fish photo, stores it in
 - React + Vite SPA with Tailwind and React Router.
 - Azure Functions (`/api/upload-and-analyze`, `/api/recent`, `/api/stats`) handle uploads, shared history, and metrics.
 - Dark-themed UI with a streamlined upload flow and dynamic results dashboard.
-- Shared “recent analyses” list with thumbnails and detected objects available to every visitor.
+- Shared "recent analyses" list with thumbnails and detected objects available to every visitor.
 - GitHub Actions workflow ready for Azure Static Web Apps deployment (app + API).
 
 ## Architecture Overview
@@ -14,7 +14,7 @@ An Azure Static Web Apps site that lets anyone upload a fish photo, stores it in
 2. The upload Function writes the image to Blob Storage, calls Azure AI Vision for objects/tags, and saves a JSON metadata record alongside the blob.
 3. `/api/recent` enumerates the metadata container, generates short-lived SAS links for each image, and returns the latest analyses.
 4. `/api/stats` counts the metadata blobs to power the total recognitions counter on the home page.
-5. The React results page consumes both the direct upload response and `/api/recent` so the latest five analyses (with thumbnails) are visible to everyone.
+5. The React results page consumes both the direct upload response and `/api/recent` so the latest analyses (with thumbnails) are visible to everyone.
 
 ## Local Development
 ```bash
@@ -53,11 +53,11 @@ All settings must be present before running the Functions in Azure; otherwise re
 1. Create (or reuse) a Static Web App.
 2. Set **App location** to `.` and **Output location** to `dist`. The provided workflow deploys the Functions from `api/`.
 3. Populate the GitHub secret `AZURE_STATIC_WEB_APPS_API_TOKEN_KIND_FIELD_03B865710` (match the workflow name).
-4. After deployment, add the configuration settings listed above under **Settings → Configuration** in the Static Web App.
+4. After deployment, add the configuration settings listed above under **Settings -> Configuration** in the Static Web App.
 
 ## Frontend Flow
 - `src/pages/Home.jsx`: loads shared stats and quick facts, with calls-to-action for upload/results.
 - `src/pages/Upload.jsx`: handles file selection, preview, API submission, and navigation to the results page.
-- `src/pages/Results.jsx`: fetches `/api/recent`, shows the active analysis (objects + preview), and lists the five most recent analyses with thumbnails and detected objects.
+- `src/pages/Results.jsx`: fetches `/api/recent`, shows the active analysis (objects + preview), and lists the most recent analyses with thumbnails and detected objects.
 
 `staticwebapp.config.json` allows anonymous access to `/api/*` and enables client-side routing. Adjust the configuration if you later secure endpoints or change containers.

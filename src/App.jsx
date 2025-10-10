@@ -10,10 +10,10 @@ export default function App() {
         <header className="flex flex-col gap-4 py-8 md:flex-row md:items-center md:justify-between">
           <NavLink to="/" className="flex items-center gap-3 text-slate-100">
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500 text-sm font-semibold">
-              FA
+              FC
             </span>
             <div>
-              <div className="text-lg font-semibold leading-tight">Fish AI</div>
+              <div className="text-lg font-semibold leading-tight">Fish Classifier (Demo)</div>
               <div className="text-xs text-slate-400">Instant species recognition</div>
             </div>
           </NavLink>
@@ -57,7 +57,7 @@ export default function App() {
         </main>
 
         <footer className="border-t border-slate-900 py-8 text-center text-xs text-slate-500">
-          © {new Date().getFullYear()} Fish AI
+          © {new Date().getFullYear()} Fish Classifier (Demo)
         </footer>
       </div>
     </div>
