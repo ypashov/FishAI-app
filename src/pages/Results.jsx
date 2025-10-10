@@ -165,7 +165,7 @@ export default function Results() {
         {/* Object/cue breakdown panel */}
         <div className="space-y-4 rounded-2xl bg-slate-900/70 p-5 shadow-lg shadow-slate-950/40">
           <div className="space-y-2">
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Detected cues</span>
+            <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Fish species</span>
             {objects.length ? (
               <div className="space-y-1 text-sm text-slate-300">
                 {objects.slice(0, 8).map((obj, index) => (
