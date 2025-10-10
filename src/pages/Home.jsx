@@ -65,7 +65,7 @@ export default function Home() {
           <p className="text-xs uppercase tracking-wide text-blue-400/80">Fish Classifier (Demo)</p>
           <h1 className="text-3xl font-semibold text-slate-50">Know your catch with a single photo.</h1>
           <p className="max-w-2xl text-sm text-slate-400">
-            Upload a fish image and our recognition engine highlights the most probable species along with the visual cues it used to make the call.
+            Upload a fish image and the recognition engine highlights the most probable species.
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
@@ -79,7 +79,7 @@ export default function Home() {
             to="/results"
             className="rounded-full border border-slate-700 px-5 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-800/80"
           >
-            View detailed results
+            View results
           </Link>
         </div>
       </section>
@@ -92,12 +92,12 @@ export default function Home() {
           </span>
           <div className="mt-3 text-3xl font-semibold text-slate-50">{displayCount}</div>
           <p className="mt-2 text-xs text-slate-500">
-            Total recognitions completed across the Fish Classifier (Demo) community.
+            Total recognitions completed by the Fish Classifier (Demo).
           </p>
         </div>
         <div className="md:col-span-2 rounded-xl border border-slate-800 bg-slate-950/70 p-6">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">Recent analyses</h2>
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">Recent uploads</h2>
             {loadingRecent ? (
               <span className="text-xs text-slate-500">Loading...</span>
             ) : (
@@ -108,7 +108,7 @@ export default function Home() {
           </div>
           {recentError && <p className="mb-3 text-xs text-red-400">{recentError}</p>}
           {loadingRecent && !recent.length ? (
-            <p className="text-sm text-slate-500">Fetching recent analyses...</p>
+            <p className="text-sm text-slate-500">Fetching recent uploads...</p>
           ) : recent.length ? (
             // List of the latest uploads with quick object callouts
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -151,7 +151,7 @@ export default function Home() {
             </div>
           ) : (
             <p className="text-sm text-slate-500">
-              No public analyses yet. Be the first to upload a fish photo.
+              No uploads yet. Be the first to upload a fish photo.
             </p>
           )}
         </div>

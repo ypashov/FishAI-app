@@ -121,15 +121,15 @@ export default function Results() {
       {/* Latest analysis headline + shortcut to upload another */}
       <div className="flex flex-col gap-3 rounded-2xl bg-slate-900/70 p-6 shadow-lg shadow-slate-950/40 md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-slate-50">Latest fish analysis</h2>
-          <p className="text-sm text-slate-400">Primary species cues detected in your photo.</p>
+          <h2 className="text-xl font-semibold text-slate-50">Latest fish classification</h2>
+          <p className="text-sm text-slate-400">Primary species detected in your photo.</p>
         </div>
         <button
           type="button"
           onClick={() => navigate('/upload')}
           className="rounded-full border border-slate-700 px-5 py-2 text-sm font-medium text-slate-200 hover:bg-slate-900"
         >
-          Analyze another photo
+          Upload another photo
         </button>
       </div>
 
@@ -184,7 +184,7 @@ export default function Results() {
       {/* Recent gallery */}
       <section className="rounded-2xl bg-slate-900/70 p-5 shadow-lg shadow-slate-950/40">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-400">Recent analyses</h3>
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-400">Recent uploads</h3>
           {loadingRecent ? (
             <span className="text-xs text-slate-500">Loading...</span>
           ) : (
@@ -193,7 +193,7 @@ export default function Results() {
         </div>
         {recentError && <p className="mb-3 text-xs text-red-400">{recentError}</p>}
         {loadingRecent && !recent.length ? (
-          <p className="text-sm text-slate-500">Fetching latest analyses...</p>
+          <p className="text-sm text-slate-500">Fetching latest uploads...</p>
         ) : recent.length ? (
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {recent.map((item) => {
@@ -240,7 +240,7 @@ export default function Results() {
             })}
           </div>
         ) : (
-          <p className="text-sm text-slate-500">No public analyses yet. Try uploading your first fish photo.</p>
+          <p className="text-sm text-slate-500">No uploads yet. Try uploading your first fish photo.</p>
         )}
       </section>
     </div>
