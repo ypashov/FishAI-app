@@ -74,7 +74,7 @@ export default function App() {
 
         {/* Simple footer attribution */}
         <footer className="border-t border-slate-900 py-8 text-center text-xs text-slate-500">
-          © {new Date().getFullYear()} Fish Classifier (Demo)
+          {new Date().getFullYear()} Fish Classifier (Demo)
         </footer>
       </div>
     </div>
