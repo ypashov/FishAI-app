@@ -56,6 +56,14 @@ export default function App() {
             >
               Results
             </NavLink>
+            <a
+              href="ypashov/FishAI-app"
+              target="https://github.com/ypashov/FishAI-app"
+              rel="noopener noreferrer"
+              className={`${navClass} text-slate-300 bg-slate-900/60 hover:text-blue-300`}
+            >
+              GitHub
+            </a>
           </nav>
         </header>
 
