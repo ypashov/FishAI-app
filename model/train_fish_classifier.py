@@ -3,6 +3,7 @@ from __future__ import annotations
 # FastAI transfer learning entry point for fish classification dataset.
 
 import argparse
+import os
 from pathlib import Path
 
 # Core FastAI vision APIs for building dataloaders and learners.
@@ -109,6 +110,19 @@ def parse_args() -> argparse.Namespace:
         default="cuda",
         help="Torch device identifier (default: cuda). Use cpu if you lack a compatible GPU.",
     )
+    parser.add_argument(
+        "--num-workers",
+        type=int,
+        default=min(8, os.cpu_count() or 4),
+        help="How many worker processes to use for DataLoader preprocessing (default: min(8, cpu_count)).",
+    )
+    parser.add_argument(
+        "--no-fp16",
+        dest="fp16",
+        action="store_false",
+        help="Disable mixed-precision training.",
+    )
+    parser.set_defaults(fp16=True)
     return parser.parse_args()
 
 
@@ -119,6 +133,7 @@ def build_dataloaders(
     valid_pct: float,
     seed: int,
     device: torch.device,
+    num_workers: int,
 ):
     """Create FastAI DataLoaders from the fish image folder structure."""
     if not data_path.exists():
@@ -138,14 +153,116 @@ def build_dataloaders(
     dls = block.dataloaders(
         data_path,
         bs=batch_size,
-        num_workers=0,  # num_workers=0 keeps Windows runs simple; adjust if you prefer
+        device=device,
+        num_workers=max(0, num_workers),
     )
-    return dls.to(device)
+    return dls
+
+
+def prompt_for_missing_args(args: argparse.Namespace) -> argparse.Namespace:
+    """Interactively prompt the user for any arguments left unspecified."""
+    def ask(prompt: str, cast, default):
+        raw = input(f"{prompt} [{default}]: ").strip()
+        return cast(raw) if raw else default
+
+    print("Configure training run (press Enter to accept the default shown in brackets).\n")
+
+    args.data_path = ask(
+        "Dataset path (folders of images per class)",
+        Path,
+        args.data_path,
+    )
+    while not args.data_path.exists():
+        print(f"Path '{args.data_path}' does not exist. Please try again.")
+        args.data_path = ask(
+            "Dataset path (folders of images per class)",
+            Path,
+            args.data_path,
+        )
+
+    args.image_size = ask(
+        "Image size (pixels to resize each image)",
+        int,
+        args.image_size,
+    )
+    args.batch_size = ask(
+        "Batch size (images per gradient step)",
+        int,
+        args.batch_size,
+    )
+    args.valid_pct = ask(
+        "Validation fraction (portion of images held out for validation)",
+        float,
+        args.valid_pct,
+    )
+    args.epochs = ask(
+        "Fine-tune epochs after unfreezing",
+        int,
+        args.epochs,
+    )
+    args.freeze_epochs = ask(
+        "Frozen head epochs before unfreezing",
+        int,
+        args.freeze_epochs,
+    )
+    args.learning_rate = ask(
+        "Learning rate for fine_tune",
+        float,
+        args.learning_rate,
+    )
+    arch_prompt = (
+        "Architecture for transfer learning "
+        "(options: resnet18, resnet34, resnet50, resnet101)"
+    )
+    args.arch = ask(
+        arch_prompt,
+        str,
+        args.arch,
+    )
+    while args.arch not in ARCH_CHOICES:
+        print("Please choose one of: resnet18, resnet34, resnet50, resnet101.")
+        args.arch = ask(
+            arch_prompt,
+            str,
+            args.arch,
+        )
+
+    args.output_path = ask(
+        "Export path for the trained model (ends with .pkl)",
+        Path,
+        args.output_path,
+    )
+    args.seed = ask(
+        "Random seed for reproducible splits",
+        int,
+        args.seed,
+    )
+    device_prompt = (
+        "Torch device string (e.g., cuda, cuda:0, cpu). "
+        "Use cpu if you do not have a CUDA-capable GPU."
+    )
+    args.device = ask(
+        device_prompt,
+        str,
+        args.device,
+    )
+    args.num_workers = ask(
+        "DataLoader worker processes (higher keeps GPU busier if CPU allows)",
+        int,
+        args.num_workers,
+    )
+    fp16_choice = ask(
+        "Use mixed precision (fp16) for faster GPU training? (yes/no)",
+        str,
+        "yes" if args.fp16 else "no",
+    ).lower()
+    args.fp16 = fp16_choice in {"y", "yes", "true", "1"}
+    return args
 
 
 def main() -> None:
     """Orchestrate end-to-end training and export the resulting learner."""
-    args = parse_args()
+    args = prompt_for_missing_args(parse_args())
 
     if not torch.cuda.is_available() and args.device.startswith("cuda"):
         raise RuntimeError(
@@ -154,6 +271,12 @@ def main() -> None:
 
     device = torch.device(args.device)
 
+    if os.name == "nt" and device.type == "cuda" and args.num_workers > 0:
+        print(
+            "Windows CUDA detected: resetting DataLoader workers to 0 to avoid multiprocessing pickling issues."
+        )
+        args.num_workers = 0
+
     dls = build_dataloaders(
         data_path=args.data_path,
         image_size=args.image_size,
@@ -161,6 +284,7 @@ def main() -> None:
         valid_pct=args.valid_pct,
         seed=args.seed,
         device=device,
+        num_workers=args.num_workers,
     )
 
     arch = ARCH_CHOICES[args.arch]
@@ -170,6 +294,9 @@ def main() -> None:
         metrics=[error_rate],
     )
     learn.to(device)
+
+    if args.fp16 and device.type == "cuda":
+        learn = learn.to_fp16()
 
     learn.fine_tune(
         epochs=args.epochs,
