@@ -1,0 +1,12 @@
+.git
+.gitignore
+node_modules
+frontend
+storage
+__pycache__
+*.pyc
+dist
+coverage
+.pytest_cache
+azure-pipelines.yml
+.vscode

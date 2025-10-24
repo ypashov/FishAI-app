@@ -9,7 +9,6 @@ import { useLocation, useNavigate } from 'react-router-dom'
 const STORAGE_KEY = 'fishai:lastPrediction'
 const RECENT_LIMIT = 20
 
-// Pull the last analysis from storage (if available) to prime the page when navigating directly.
 function readStoredPrediction() {
   if (typeof window === 'undefined') return null
   try {
@@ -26,15 +25,31 @@ function formatConfidence(value) {
   return `${Math.round(value * 100)}%`
 }
 
+function normalizePrediction(payload) {
+  if (!payload) return null
+  return {
+    id: payload.id,
+    fileName: payload.fileName || payload.file_name || 'upload.jpg',
+    description: payload.description || '',
+    objects: payload.objects || [],
+    analyzedAt: payload.analyzedAt || payload.created_at || null,
+    imageUrl: payload.imageUrl || payload.image_url || null,
+    previewDataUrl: payload.previewDataUrl || null
+  }
+}
+
 // Results hub: shows the active analysis and a list of recent public uploads.
 export default function Results() {
   const location = useLocation()
   const navigate = useNavigate()
 
-  const initialPrediction = useMemo(() => location.state?.prediction || readStoredPrediction(), [location.state])
+  const initialPrediction = useMemo(
+    () => normalizePrediction(location.state?.prediction) || normalizePrediction(readStoredPrediction()),
+    [location.state]
+  )
 
   const [prediction, setPrediction] = useState(initialPrediction)
-  const [imageSource, setImageSource] = useState(initialPrediction?.sasUrl || initialPrediction?.previewDataUrl || '')
+  const [imageSource, setImageSource] = useState(initialPrediction?.imageUrl || initialPrediction?.previewDataUrl || '')
   const [recent, setRecent] = useState([])
   const [loadingRecent, setLoadingRecent] = useState(true)
   const [recentError, setRecentError] = useState('')
@@ -48,10 +63,11 @@ export default function Results() {
         const response = await fetch(`/api/recent?limit=${RECENT_LIMIT}`)
         const payload = await response.json().catch(() => ({}))
         if (!response.ok) throw new Error(payload.error || `Recent request failed (${response.status})`)
-        setRecent(payload.items || [])
-        if (!prediction && payload.items && payload.items.length) {
-          setPrediction(payload.items[0])
-          setImageSource(payload.items[0].sasUrl || '')
+        const items = (payload.items || []).map((item) => normalizePrediction(item))
+        setRecent(items)
+        if (!prediction && items.length) {
+          setPrediction(items[0])
+          setImageSource(items[0].imageUrl || '')
         }
       } catch (err) {
         console.error('Failed to load recent analyses', err)
@@ -66,20 +82,19 @@ export default function Results() {
 
   useEffect(() => {
     if (!location.state?.prediction) return
-    const incoming = location.state.prediction
+    const incoming = normalizePrediction(location.state.prediction)
     setPrediction(incoming)
-    setImageSource(incoming.sasUrl || incoming.previewDataUrl || '')
+    setImageSource(incoming.imageUrl || incoming.previewDataUrl || '')
     const safeSnapshot = {
       ...incoming,
-      sasUrl: undefined,
-      blobUrl: undefined
+      imageUrl: undefined
     }
     window.localStorage?.setItem(STORAGE_KEY, JSON.stringify(safeSnapshot))
   }, [location.state])
 
   useEffect(() => {
     if (!prediction) return
-    setImageSource(prediction.sasUrl || prediction.previewDataUrl || '')
+    setImageSource(prediction.imageUrl || prediction.previewDataUrl || '')
   }, [prediction])
 
   // Recover gracefully if the temporary SAS URL has expired.
@@ -92,7 +107,7 @@ export default function Results() {
   // Selecting an item from the recent gallery updates the active result view.
   const handleSelectRecent = (item) => {
     setPrediction(item)
-    setImageSource(item.sasUrl || item.previewDataUrl || '')
+    setImageSource(item.imageUrl || item.previewDataUrl || '')
   }
 
   if (!prediction) {
@@ -113,7 +128,7 @@ export default function Results() {
     )
   }
 
-  const { objects = [], analyzedAt, fileName, sasUrl, id: currentId } = prediction
+  const { objects = [], analyzedAt, fileName, description, imageUrl, id: currentId } = prediction
 
   // Render the active analysis along with supporting panels.
   return (
@@ -150,11 +165,12 @@ export default function Results() {
           )}
           <div className="text-xs text-slate-400">
             {fileName && <div className="font-medium text-slate-300">{fileName}</div>}
+            {description && <div className="text-slate-400">{description}</div>}
             {analyzedAt && <div>Analyzed {new Date(analyzedAt).toLocaleString()}</div>}
-            {sasUrl && (
+            {imageUrl && (
               <div className="truncate">
                 <span className="font-medium text-slate-300">Share link:</span>{' '}
-                <a href={sasUrl} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
+                <a href={imageUrl} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
                   open
                 </a>
               </div>
@@ -209,9 +225,9 @@ export default function Results() {
                       : 'border-slate-800 bg-slate-950/70 hover:border-slate-700'
                   }`}
                 >
-                  {item.sasUrl ? (
+                  {item.imageUrl ? (
                     <img
-                      src={item.sasUrl}
+                      src={item.imageUrl}
                       alt={item.fileName || 'Analysis thumbnail'}
                       className="h-12 w-12 rounded-lg object-cover"
                       onError={(e) => {

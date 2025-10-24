@@ -67,14 +67,12 @@ export default function Upload() {
 
     try {
       const dataUrl = preview || (await readFileAsDataUrl(file))
-      const response = await fetch('/api/upload-and-analyze', {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await fetch('/api/classify', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fileName: file.name,
-          contentType: file.type || 'application/octet-stream',
-          data: dataUrl
-        })
+        body: formData
       })
 
       const payload = await response.json().catch(() => ({}))
@@ -83,16 +81,18 @@ export default function Upload() {
       }
 
       const prediction = {
-        id: payload.id || payload.blobName || `${Date.now()}-${file.name}`,
-        ...payload,
-        fileName: file.name,
+        id: payload.id || `${Date.now()}-${file.name}`,
+        fileName: payload.file_name || file.name,
+        description: payload.description || 'No description available.',
+        objects: payload.objects || [],
+        analyzedAt: payload.created_at || new Date().toISOString(),
+        imageUrl: payload.image_url || null,
         previewDataUrl: dataUrl
       }
 
       const safePrediction = {
         ...prediction,
-        sasUrl: undefined,
-        blobUrl: undefined
+        imageUrl: undefined
       }
       window.localStorage?.setItem(STORAGE_KEY, JSON.stringify(safePrediction))
       setStatus('Done! Redirecting...')
@@ -153,4 +153,3 @@ export default function Upload() {
     </div>
   )
 }
-

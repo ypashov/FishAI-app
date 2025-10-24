@@ -1,0 +1,7 @@
+fastapi==0.110.2
+uvicorn[standard]==0.29.0
+python-multipart==0.0.9
+fastai==2.7.15
+torch==2.2.2
+Pillow==10.2.0
+pydantic-settings==2.4.0

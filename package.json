@@ -8,9 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint .",
-    "test": "npm run test:frontend && npm run test:backend",
+    "test": "npm run test:frontend",
     "test:frontend": "vitest --config vitest.frontend.config.js",
-    "test:backend": "vitest --config vitest.backend.config.js",
     "prepare": "simple-git-hooks"
   },
   "dependencies": {
@@ -19,7 +18,6 @@
     "react-router-dom": "^6.26.2"
   },
   "devDependencies": {
-    "@azure/storage-blob": "^12.19.0",
     "@testing-library/jest-dom": "^6.4.3",
     "@testing-library/react": "^16.0.1",
     "@types/node": "^22.7.2",

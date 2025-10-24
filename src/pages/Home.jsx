@@ -8,6 +8,17 @@ import { Link } from 'react-router-dom'
 
 const RECENT_LIMIT = 6
 
+function normalizePrediction(payload) {
+  if (!payload) return null
+  return {
+    id: payload.id,
+    fileName: payload.fileName || payload.file_name || 'upload.jpg',
+    description: payload.description || '',
+    objects: payload.objects || [],
+    imageUrl: payload.imageUrl || payload.image_url || null
+  }
+}
+
 // Landing page: highlights headline metrics plus a snapshot of recent analyses.
 export default function Home() {
   const [totalRecognitions, setTotalRecognitions] = useState(null)
@@ -38,7 +49,7 @@ export default function Home() {
         const response = await fetch(`/api/recent?limit=${RECENT_LIMIT}`)
         const payload = await response.json().catch(() => ({}))
         if (!response.ok) throw new Error(payload.error || `Recent request failed (${response.status})`)
-        if (isMounted) setRecent(payload.items || [])
+        if (isMounted) setRecent((payload.items || []).map((item) => normalizePrediction(item)))
       } catch (err) {
         console.error('Failed to load recent analyses', err)
         if (isMounted) setRecentError('Unable to load recent analyses right now.')
@@ -119,9 +130,9 @@ export default function Home() {
                     key={item.id}
                     className="flex items-center gap-3 rounded-lg border border-slate-800 bg-slate-900/70 p-3"
                   >
-                    {item.sasUrl ? (
+                    {item.imageUrl ? (
                       <img
-                        src={item.sasUrl}
+                        src={item.imageUrl}
                         alt={item.fileName || 'Analysis thumbnail'}
                         className="h-12 w-12 rounded-lg object-cover"
                         onError={(e) => {
